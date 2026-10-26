@@ -25,7 +25,7 @@
 <body>
 
 <div class="no-print">
-    <button onclick="window.print()">🖨️ Cetak</button>
+    <button onclick="window.print()">Cetak</button>
     <a href="{{ route('production.analisa', ['po_id' => $po->id]) }}">Kembali</a>
 </div>
 

@@ -54,7 +54,7 @@
                     </div>
                     @if(!$pt->is_active)<span class="badge bg-secondary" style="font-size:.62rem">Nonaktif</span>@endif
                 </div>
-                <button class="btn btn-xs p-0 border-0 ms-1" style="color:#94a3b8"
+                <button class="btn btn-xs p-0 border-0 ms-1" style="color:var(--color-neutral-400)"
                         onclick="openEditType({{ $pt->id }},{{ $pt->product_group_id }},'{{ addslashes($pt->name) }}','{{ $pt->color ?? '' }}',{{ $pt->is_active?1:0 }})">
                     <i class="bi bi-pencil-fill" style="font-size:.75rem"></i>
                 </button>

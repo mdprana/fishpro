@@ -21,7 +21,7 @@
     @foreach($boxes as $box)
     <div class="box-label">
         <div class="box-label-top">
-            <span class="fw-bold">🐟 FishPro</span>
+            <span class="fw-bold">FishPro</span>
             <span class="box-seq">#{{ $box->sequence_no }}</span>
         </div>
 

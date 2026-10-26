@@ -7,163 +7,346 @@
     <title>@yield('title','FishPro') - Fish Processing</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    @include('layouts._theme')
     <style>
-        :root{--sw:250px;--navy:#1a3a5c;--accent:#0dcaf0;}
-        body{background:#f0f4f8;font-family:'Segoe UI',sans-serif;}
-        #sidebar{position:fixed;top:0;left:0;height:100vh;width:var(--sw);
-            background:var(--navy);z-index:1040;overflow-y:auto;transition:transform .25s;display:flex;flex-direction:column;}
-        #sidebar .brand{padding:1.2rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);
-            color:#fff;font-weight:800;font-size:1.15rem;flex-shrink:0;}
-        #sidebar .brand span{color:var(--accent);}
-        .nav-section{font-size:.65rem;font-weight:700;text-transform:uppercase;
-            letter-spacing:.1em;color:rgba(255,255,255,.3);padding:.7rem 1.25rem .15rem;margin-top:.2rem;}
-        #sidebar .nav-link{color:rgba(255,255,255,.7);padding:.52rem 1.1rem;border-radius:7px;
-            margin:1px 8px;display:flex;align-items:center;gap:.55rem;font-size:.86rem;transition:all .15s;}
-        #sidebar .nav-link:hover,#sidebar .nav-link.active{color:#fff;background:rgba(255,255,255,.15);}
-        #sidebar .nav-link .bi{width:18px;text-align:center;font-size:.95rem;flex-shrink:0;}
-        #main{margin-left:var(--sw);min-height:100vh;}
-        .topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:.65rem 1.5rem;
-            display:flex;align-items:center;justify-content:space-between;
-            position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.04);}
-        .page-content{padding:1.5rem;}
-        .stat-card{background:#fff;border-radius:12px;padding:1.25rem 1.4rem;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.04);}
-        .form-card{background:#fff;border-radius:12px;padding:1.75rem;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.04);}
-        .form-label{font-size:.875rem;font-weight:600;color:#374151;margin-bottom:.3rem;}
-        .form-control:focus,.form-select:focus{border-color:#0d6efd;box-shadow:0 0 0 3px rgba(13,110,253,.1);}
-        .table-custom thead th{background:#f8fafc;font-size:.76rem;font-weight:700;text-transform:uppercase;
-            letter-spacing:.04em;color:#64748b;border-bottom:2px solid #e2e8f0;}
-        .progress{border-radius:8px;overflow:hidden;}
-        .item-row{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:.75rem;position:relative;}
-        .output-row{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:.85rem;margin-bottom:.5rem;position:relative;}
-        .color-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
-        .btn-check:checked+.product-btn{box-shadow:0 0 0 2px currentColor inset!important;font-weight:700;}
-        .product-btn{opacity:.85;cursor:pointer;}
-        .product-btn:hover{opacity:1;}
-        @media(max-width:768px){#sidebar{transform:translateX(-100%);}#sidebar.open{transform:translateX(0);}#main{margin-left:0;}}
+        .app-shell{display:flex;min-height:100vh}
+        #sidebar{width:280px;min-width:280px;max-width:280px;position:sticky;top:0;height:100vh;background:var(--color-neutral-50);
+            border-right:1px solid var(--color-neutral-200);display:flex;flex-direction:column;flex-shrink:0;z-index:50}
+        .sb-top{padding:19px 18px 0;flex-shrink:0}
+        .sb-brand{display:flex;align-items:center;gap:13px;height:48px;color:inherit;text-decoration:none}
+        .sb-logo{width:48px;height:48px;border-radius:14px;background:#1A1D25;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sb-brand-name{color:var(--color-neutral-900)}
+        .sb-brand-sub{color:var(--color-neutral-400)}
+        .sb-search{position:relative;margin-top:37px;height:38px}
+        .sb-search input{width:100%;height:38px;border:1px solid transparent;border-radius:10px;background:var(--color-neutral-100);
+            padding:0 42px 0 36px;font-size:14px;color:var(--color-neutral-900);outline:none}
+        .sb-search input:focus{background:#fff;border-color:var(--color-neutral-350)}
+        .sb-search input::placeholder{color:var(--color-neutral-400)}
+        .sb-search .sb-search-icon{position:absolute;left:12px;top:11px;color:var(--color-neutral-400);pointer-events:none}
+        .sb-kbd{position:absolute;right:8px;top:9px;width:26px;height:20px;border-radius:6px;background:#fff;color:var(--color-neutral-600);
+            font-size:12px;line-height:20px;text-align:center;pointer-events:none;box-shadow:var(--shadow-raised)}
+        .sb-nav{flex:1;min-height:0;overflow-y:auto;padding:21px 18px 12px}
+        .sb-nav ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+        #sidebar [hidden]{display:none!important}
+        .sb-item{display:flex;align-items:center;gap:8px;width:100%;height:38px;padding:0 12px;border:0;border-radius:10px;background:transparent;
+            color:var(--color-neutral-600);text-decoration:none;font-size:14px;line-height:20px;letter-spacing:-0.1px;text-align:left;
+            transition:background-color 120ms ease-out,color 120ms ease-out}
+        .sb-item:hover{background:var(--color-neutral-100);color:var(--color-neutral-600)}
+        .sb-item svg{flex-shrink:0;color:var(--color-neutral-600)}
+        .sb-item.active{background:#fff;box-shadow:var(--shadow-raised);color:var(--color-neutral-900)}
+        .sb-item.active svg{color:var(--color-neutral-900)}
+        .sb-item.open-parent{color:var(--color-neutral-900);font-weight:500}
+        .sb-item.open-parent svg:first-child{color:var(--color-neutral-900)}
+        .sb-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .sb-chevron{color:var(--color-neutral-400)!important;transition:transform 150ms ease-out}
+        .sb-group-btn[aria-expanded="true"] .sb-chevron{transform:rotate(180deg)}
+        .sb-sub{margin-top:4px!important}
+        .sb-sub .sb-item{height:34px;padding-left:36px}
+        .sb-rail-link{display:none!important}
+        .sb-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+            background:#fff;border:1px solid var(--color-neutral-200);color:var(--color-neutral-900);line-height:1;flex-shrink:0}
+        .sb-bottom{flex-shrink:0;padding:12px 18px 18px}
+        .sb-usage-label{color:var(--color-neutral-400)}
+        .sb-usage-value{color:var(--color-neutral-900)}
+        .sb-progress{height:6px;border-radius:999px;background:var(--color-neutral-200);overflow:hidden;margin:8px 0 12px}
+        .sb-progress>span{display:block;height:100%;background:var(--color-ink-900);border-radius:999px}
+        .sb-new{display:flex;align-items:center;justify-content:center;gap:8px;height:36px;width:100%;border:1px solid var(--color-neutral-200);
+            border-radius:10px;background:#fff;color:var(--color-neutral-900);font-size:14px;font-weight:500;text-decoration:none;
+            transition:background-color 120ms ease-out,color 120ms ease-out}
+        .sb-new:hover{background:var(--color-neutral-100);color:var(--color-neutral-900)}
+        .sb-user{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--color-neutral-200)}
+        .sb-avatar{position:relative;width:40px;height:40px;border-radius:50%;background:var(--color-neutral-200);color:var(--color-neutral-900);
+            display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+        .sb-avatar::after{content:"";position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;background:#07B93B;border:2px solid #fff}
+        .sb-user-text{flex:1;min-width:0}
+        .sb-user-name{color:var(--color-neutral-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .sb-user-email{color:var(--color-neutral-400);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:10px;background:transparent;
+            color:var(--color-neutral-600);flex-shrink:0;transition:background-color 120ms ease-out,color 120ms ease-out;text-decoration:none}
+        .icon-btn:hover{background:var(--color-neutral-100);color:var(--color-neutral-900)}
+
+        main.app-main{flex:1;min-width:0;display:flex;flex-direction:column}
+        .app-header{position:sticky;top:0;z-index:40;background:#fff;height:67px;border-bottom:1px solid var(--color-neutral-200);
+            display:flex;align-items:center;gap:12px;padding:0 18px}
+        .app-header-title{min-width:0}
+        .app-header-title h1{margin:0;color:var(--color-neutral-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .app-header .breadcrumb{margin:0;flex-wrap:nowrap;overflow:hidden;white-space:nowrap;font-size:12.5px;line-height:18px}
+        .app-header .breadcrumb a{color:var(--color-neutral-400);text-decoration:none}
+        .app-header .breadcrumb a:hover{color:var(--color-neutral-900)}
+        .app-header .breadcrumb-item,.app-header .breadcrumb-item.active{color:var(--color-neutral-400)}
+        .app-date{color:var(--color-neutral-400);white-space:nowrap}
+        #sbToggle{display:none}
+        .page-content{padding:24px 18px;min-width:0}
+        .page-content h4.fw-bold{font-weight:600;font-size:23.5px;line-height:30px;letter-spacing:-0.3px;color:var(--color-neutral-900)}
+        .page-content h4.fw-bold + p,.page-content h4.fw-bold + .text-muted{color:var(--color-neutral-600)!important;font-size:14px}
+
+        .item-row{background:var(--color-neutral-50);border:1px solid var(--color-neutral-200);border-radius:10px;padding:1rem;margin-bottom:.75rem;position:relative}
+        .output-row{background:#fff;border:1px solid var(--color-neutral-200);border-radius:10px;padding:.85rem;margin-bottom:.5rem;position:relative}
+        .color-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+        .btn-check:checked+.product-btn{box-shadow:0 0 0 2px currentColor inset!important;font-weight:600}
+        .product-btn{opacity:.85;cursor:pointer}
+        .product-btn:hover{opacity:1}
+        .sb-overlay{display:none}
+
+        @media (min-width:768px) and (max-width:1023px){
+            #sidebar.sidebar-collapsed{width:72px!important;min-width:72px!important;max-width:72px!important}
+            #sidebar .sb-top{padding:19px 12px 0}
+            #sidebar .sb-brand{justify-content:center}
+            #sidebar .sb-brand-text,#sidebar .sb-search,#sidebar .sb-label,#sidebar .sb-chevron,#sidebar .sb-sub,
+            #sidebar .sb-group-btn,#sidebar .sb-usage-text,#sidebar .sb-new-label,#sidebar .sb-user-text{display:none!important}
+            #sidebar .sb-rail-link{display:flex!important}
+            #sidebar .sb-nav{padding:21px 16px 12px}
+            #sidebar .sb-item{width:40px;height:38px;padding:0;justify-content:center;position:relative}
+            #sidebar .sb-count{position:absolute;top:6px;right:6px;min-width:8px;width:8px;height:8px;padding:0;font-size:0;
+                background:var(--red-700);border:0}
+            #sidebar .sb-bottom{padding:12px 16px 18px;display:flex;flex-direction:column;align-items:center}
+            #sidebar .sb-new{width:40px;height:38px}
+            #sidebar .sb-user{flex-direction:column;gap:8px;width:100%}
+        }
+        @media (max-width:767.98px){
+            #sidebar{position:fixed;left:-280px;top:0;bottom:0;height:auto;visibility:hidden;
+                transition:left 300ms ease-out,visibility 0s linear 300ms}
+            #sidebar.active{left:0;visibility:visible;transition:left 300ms ease-out}
+            .sb-overlay.show{display:block;position:fixed;inset:0;background:rgba(13,15,20,.4);z-index:45}
+            #sbToggle{display:inline-flex}
+            .app-date{display:none}
+        }
     </style>
     @stack('styles')
 </head>
 <body>
-
-<nav id="sidebar">
-    <div class="brand">🐟 Fish<span>Pro</span></div>
-    <div class="flex-grow-1 overflow-auto">
-    <ul class="nav flex-column pt-1 pb-4">
-        <li><div class="nav-section">Overview</div></li>
-        <li><a class="nav-link {{ request()->routeIs('dashboard') ?'active':'' }}" href="{{ route('dashboard') }}">
-            <i class="bi bi-speedometer2"></i> Dashboard</a></li>
-
-        <li><div class="nav-section">Produksi</div></li>
-        <li><a class="nav-link {{ request()->routeIs('po.*') ?'active':'' }}" href="{{ route('po.index') }}">
-            <i class="bi bi-file-earmark-text"></i> Purchase Order</a></li>
-        <li><a class="nav-link {{ request()->routeIs('receiving.*') ?'active':'' }}" href="{{ route('receiving.index') }}">
-            <i class="bi bi-box-arrow-in-down"></i> Bahan Baku</a></li>
-        <li><a class="nav-link {{ request()->routeIs('batch.*') ?'active':'' }}" href="{{ route('batch.index') }}">
-            <i class="bi bi-box2"></i> Batch &amp; Lot</a></li>
-
-        {{-- Tahapan diambil dari master process_stages, bukan di-hardcode,
-             supaya tahap baru langsung muncul di menu tanpa ubah layout. --}}
-        @foreach(\App\Models\ProcessStage::active()->ordered()->get() as $navStage)
-        <li><a class="nav-link {{ request()->routeIs('stage.*') && request()->route('stage')?->code === $navStage->code ?'active':'' }}"
-               href="{{ route('stage.index', $navStage->code) }}">
-            <i class="bi {{ $navStage->icon }}"></i> {{ $navStage->name }}</a></li>
-        @endforeach
-        {{-- 'Analisa' juga cocok dengan pola production.*, jadi dikecualikan
-             agar tidak ada dua menu menyala bersamaan. --}}
-        <li><a class="nav-link {{ request()->routeIs('production.*') && !request()->routeIs('production.analisa*') ?'active':'' }}" href="{{ route('production.index') }}">
-            <i class="bi bi-gear-wide-connected"></i> Proses Produksi</a></li>
-        <li><div class="nav-section">Laporan</div></li>
-        <li><a class="nav-link {{ request()->routeIs('production.analisa*') ?'active':'' }}" href="{{ route('production.analisa') }}">
-            <i class="bi bi-graph-up-arrow"></i> Analisa PO
-        </a></li>
-        <li><a class="nav-link {{ request()->routeIs('report.yield') ?'active':'' }}" href="{{ route('report.yield') }}">
-            <i class="bi bi-speedometer2"></i> Yield &amp; Recovery</a></li>
-        <li><a class="nav-link {{ request()->routeIs('report.raw-material*') ?'active':'' }}" href="{{ route('report.raw-material') }}">
-            <i class="bi bi-clipboard-data"></i> Rekap Bahan Baku</a></li>
-        <li><a class="nav-link {{ request()->routeIs('packing.*') ?'active':'' }}" href="{{ route('packing.index') }}">
-            <i class="bi bi-box-seam"></i> Packing</a></li>
-        <li><a class="nav-link {{ request()->routeIs('trace.*') ?'active':'' }}" href="{{ route('trace.index') }}">
-            <i class="bi bi-upc-scan"></i> Telusur</a></li>
-        <li><a class="nav-link {{ request()->routeIs('riwayat.*') ?'active':'' }}" href="{{ route('riwayat.index') }}">
-            <i class="bi bi-clock-history"></i> Riwayat</a></li>
-
-        <li><div class="nav-section">Master Data</div></li>
-        <li><a class="nav-link {{ request()->routeIs('master.material-groups') ?'active':'' }}" href="{{ route('master.material-groups') }}">
-            <i class="bi bi-tags"></i> Group Bahan Baku</a></li>
-        <li><a class="nav-link {{ request()->routeIs('master.product-groups') ?'active':'' }}" href="{{ route('master.product-groups') }}">
-            <i class="bi bi-grid"></i> Group Produk</a></li>
-        <li><a class="nav-link {{ request()->routeIs('master.suppliers*') ?'active':'' }}" href="{{ route('master.suppliers') }}">
-            <i class="bi bi-truck"></i> Supplier</a></li>
-        <li><a class="nav-link {{ request()->routeIs('master.yield-standards*') ?'active':'' }}" href="{{ route('master.yield-standards') }}">
-            <i class="bi bi-speedometer2"></i> Standar Yield</a></li>
-
-        <li><div class="nav-section">Akun</div></li>
-        <li>
-            <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf
-                <button type="submit" class="nav-link btn btn-link w-100 text-start border-0 p-0" style="background:none">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </button>
-            </form>
-        </li>
-    </ul>
+@php
+    $r = request();
+    $navStages = \App\Models\ProcessStage::active()->ordered()->get();
+    $inAnalisa = $r->routeIs('production.analisa*');
+    $produksiOpen = $r->routeIs('po.*','receiving.*','batch.*','stage.*') || ($r->routeIs('production.*') && !$inAnalisa);
+    $laporanOpen = $inAnalisa || $r->routeIs('report.yield','report.raw-material*','packing.*','trace.*','riwayat.*');
+    $masterOpen = $r->routeIs('master.*');
+    $nav = $navSidebar ?? ['overdue_po' => 0, 'packed_box' => 0, 'target_box' => 0];
+    $usagePct = $nav['target_box'] > 0 ? min(100, round($nav['packed_box'] / $nav['target_box'] * 100)) : 0;
+    $user = auth()->user();
+    $initials = collect(preg_split('/\s+/', trim($user->name ?? 'A')))->filter()->take(2)
+        ->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
+    $groups = [
+        ['id' => 'produksi', 'label' => 'Produksi', 'icon' => 'production', 'open' => $produksiOpen, 'items' => array_merge([
+            ['Purchase Order', route('po.index'), $r->routeIs('po.*')],
+            ['Bahan Baku', route('receiving.index'), $r->routeIs('receiving.*')],
+            ['Batch & Lot', route('batch.index'), $r->routeIs('batch.*')],
+        ], $navStages->map(fn ($s) => [$s->name, route('stage.index', $s->code), $r->routeIs('stage.*') && $r->route('stage')?->code === $s->code])->all(), [
+            ['Proses Produksi', route('production.index'), $r->routeIs('production.*') && !$inAnalisa],
+        ])],
+        ['id' => 'laporan', 'label' => 'Laporan', 'icon' => 'report', 'open' => $laporanOpen, 'items' => [
+            ['Analisa PO', route('production.analisa'), $inAnalisa],
+            ['Yield & Recovery', route('report.yield'), $r->routeIs('report.yield')],
+            ['Rekap Bahan Baku', route('report.raw-material'), $r->routeIs('report.raw-material*')],
+            ['Packing', route('packing.index'), $r->routeIs('packing.*')],
+            ['Telusur', route('trace.index'), $r->routeIs('trace.*')],
+            ['Riwayat', route('riwayat.index'), $r->routeIs('riwayat.*')],
+        ]],
+        ['id' => 'master', 'label' => 'Master Data', 'icon' => 'database', 'open' => $masterOpen, 'items' => [
+            ['Group Bahan Baku', route('master.material-groups'), $r->routeIs('master.material-groups')],
+            ['Group Produk', route('master.product-groups'), $r->routeIs('master.product-groups')],
+            ['Supplier', route('master.suppliers'), $r->routeIs('master.suppliers*')],
+            ['Standar Yield', route('master.yield-standards'), $r->routeIs('master.yield-standards*')],
+        ]],
+    ];
+@endphp
+<div class="app-shell">
+<aside id="sidebar" class="sidebar-collapsed" aria-label="Navigasi utama">
+    <div class="sb-top">
+        <a href="{{ route('dashboard') }}" class="sb-brand" aria-label="FishPro, ke Dashboard">
+            <span class="sb-logo"><x-icon name="fish" size="22" /></span>
+            <span class="sb-brand-text">
+                <span class="d-block text-heading-brand sb-brand-name">FishPro</span>
+                <span class="d-block text-body-regular sb-brand-sub">Fish Processing</span>
+            </span>
+        </a>
+        <div class="sb-search">
+            <x-icon name="search" class="sb-search-icon" />
+            <input type="search" id="sbSearch" placeholder="Cari menu" aria-label="Cari menu" autocomplete="off">
+            <span class="sb-kbd" aria-hidden="true">/</span>
+        </div>
     </div>
-</nav>
 
-<div id="main">
-    <div class="topbar">
-        <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-sm btn-outline-secondary d-md-none"
-                onclick="document.getElementById('sidebar').classList.toggle('open')">
-                <i class="bi bi-list fs-5"></i>
-            </button>
+    <nav class="sb-nav" id="sbNav">
+        <ul>
+            <li data-nav-item data-label="Dashboard">
+                <a class="sb-item {{ $r->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" title="Dashboard"
+                   @if($r->routeIs('dashboard')) aria-current="page" @endif>
+                    <x-icon name="dashboard" /><span class="sb-label">Dashboard</span>
+                    @if($nav['overdue_po'] > 0)
+                    <span class="sb-count text-label-score" aria-label="{{ $nav['overdue_po'] }} PO melewati deadline">{{ $nav['overdue_po'] }}</span>
+                    @endif
+                </a>
+            </li>
+            @foreach($groups as $g)
+            <li data-nav-group>
+                <button type="button" class="sb-item sb-group-btn {{ $g['open'] ? 'open-parent' : '' }}"
+                        aria-expanded="{{ $g['open'] ? 'true' : 'false' }}" aria-controls="sb-{{ $g['id'] }}">
+                    <x-icon :name="$g['icon']" /><span class="sb-label">{{ $g['label'] }}</span>
+                    <x-icon name="chevron-down" class="sb-chevron" />
+                </button>
+                <a class="sb-item sb-rail-link {{ $g['open'] ? 'active' : '' }}" href="{{ $g['items'][0][1] }}"
+                   title="{{ $g['label'] }}" aria-label="{{ $g['label'] }}">
+                    <x-icon :name="$g['icon']" />
+                </a>
+                <ul class="sb-sub" id="sb-{{ $g['id'] }}" @unless($g['open']) hidden @endunless>
+                    @foreach($g['items'] as [$label, $href, $active])
+                    <li data-nav-item data-label="{{ $label }}">
+                        <a class="sb-item {{ $active ? 'active' : '' }}" href="{{ $href }}" title="{{ $label }}"
+                           @if($active) aria-current="page" @endif><span class="sb-label">{{ $label }}</span></a>
+                    </li>
+                    @endforeach
+                </ul>
+            </li>
+            @endforeach
+        </ul>
+    </nav>
+
+    <div class="sb-bottom">
+        <div class="sb-usage-text">
+            <div class="text-body-small sb-usage-label">Packing PO aktif</div>
+            <div class="text-body-medium sb-usage-value">{{ number_format($nav['packed_box'], 0, ',', '.') }} dari {{ number_format($nav['target_box'], 0, ',', '.') }} box</div>
+            <div class="sb-progress" role="progressbar" aria-label="Progress packing PO aktif"
+                 aria-valuenow="{{ $usagePct }}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{ $usagePct }}%"></span></div>
+        </div>
+        <a href="{{ route('po.create') }}" class="sb-new" title="Buat PO" aria-label="Buat PO">
+            <x-icon name="plus" /><span class="sb-new-label">Buat PO</span>
+        </a>
+        <div class="sb-user">
+            <div class="sb-avatar" aria-hidden="true">{{ $initials }}</div>
+            <div class="sb-user-text">
+                <div class="text-heading-brand sb-user-name">{{ $user->name ?? '' }}</div>
+                <div class="text-body-regular sb-user-email">{{ $user->email ?? '' }}</div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf
+                <button type="submit" class="icon-btn" aria-label="Keluar" title="Keluar"><x-icon name="logout" /></button>
+            </form>
+        </div>
+    </div>
+</aside>
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<main class="app-main">
+    <header class="app-header">
+        <button type="button" class="icon-btn" id="sbToggle" aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">
+            <x-icon name="menu" size="20" />
+        </button>
+        <div class="app-header-title">
+            <h1 class="text-heading-page">@yield('title','FishPro')</h1>
+            @hasSection('breadcrumb')
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0 small">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Home</a></li>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     @yield('breadcrumb')
                 </ol>
             </nav>
+            @endif
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="text-muted small d-none d-md-block">{{ now()->format('d M Y') }}</span>
-            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
-                 style="width:34px;height:34px;font-size:.82rem">
-                {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
-            </div>
-        </div>
-    </div>
+        <div class="flex-grow-1"></div>
+        <span class="text-body-regular app-date">{{ now()->translatedFormat('d M Y') }}</span>
+        <a href="{{ route('dashboard') }}" class="icon-btn" aria-label="Notifikasi" title="Notifikasi"><x-icon name="bell" size="18" /></a>
+    </header>
 
     <div class="page-content">
         @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-check-circle-fill flex-shrink-0"></i>
-            <div>{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
         @endif
         @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 mb-3">
-            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-            <div>{{ session('error') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
         @endif
         @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show mb-3">
-            <i class="bi bi-x-circle-fill me-2"></i>
-            <strong>Perbaiki kesalahan:</strong>
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            <strong class="fw-semibold">Perbaiki kesalahan:</strong>
             <ul class="mb-0 mt-1 ps-3">
                 @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
             </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
         @endif
 
         @yield('content')
     </div>
+</main>
 </div>
 
+<script>
+(function () {
+    var sb = document.getElementById('sidebar'), ov = document.getElementById('sbOverlay'),
+        tg = document.getElementById('sbToggle'), q = document.getElementById('sbSearch');
+    var mobile = window.matchMedia('(max-width: 767.98px)');
+
+    function setDrawer(open) {
+        sb.classList.toggle('active', open);
+        ov.classList.toggle('show', open);
+        tg.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) setTimeout(function () { q.focus(); }, 50); else tg.focus();
+    }
+    tg.addEventListener('click', function () { setDrawer(!sb.classList.contains('active')); });
+    ov.addEventListener('click', function () { setDrawer(false); });
+    mobile.addEventListener('change', function (e) { if (!e.matches && sb.classList.contains('active')) { sb.classList.remove('active'); ov.classList.remove('show'); tg.setAttribute('aria-expanded', 'false'); } });
+
+    sb.querySelectorAll('.sb-group-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var open = btn.getAttribute('aria-expanded') !== 'true';
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.getElementById(btn.getAttribute('aria-controls')).hidden = !open;
+        });
+    });
+
+    var groupState = null;
+    function filter() {
+        var term = q.value.trim().toLowerCase();
+        var groups = sb.querySelectorAll('[data-nav-group]');
+        if (term && !groupState) groupState = Array.prototype.map.call(groups, function (g) { return g.querySelector('.sb-sub').hidden; });
+        sb.querySelectorAll('[data-nav-item]').forEach(function (li) {
+            li.hidden = term !== '' && li.dataset.label.toLowerCase().indexOf(term) === -1;
+        });
+        groups.forEach(function (g, i) {
+            var sub = g.querySelector('.sb-sub'), btn = g.querySelector('.sb-group-btn');
+            if (term) {
+                var any = sub.querySelector('[data-nav-item]:not([hidden])');
+                g.hidden = !any;
+                sub.hidden = !any;
+                btn.setAttribute('aria-expanded', any ? 'true' : 'false');
+            } else {
+                g.hidden = false;
+                if (groupState) { sub.hidden = groupState[i]; btn.setAttribute('aria-expanded', groupState[i] ? 'false' : 'true'); }
+            }
+        });
+        if (!term) groupState = null;
+    }
+    q.addEventListener('input', filter);
+    q.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && q.value) { e.stopPropagation(); q.value = ''; filter(); }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        var t = e.target, tag = t.tagName;
+        var typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t.isContentEditable;
+        if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && q.offsetParent !== null) {
+            e.preventDefault(); q.focus();
+        } else if (e.key === 'Escape' && sb.classList.contains('active')) {
+            setDrawer(false);
+        }
+    });
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+if (window.Chart) {
+    Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+    Chart.defaults.color = '#9BA0A6';
+    Chart.defaults.borderColor = '#EFF1F3';
+}
+</script>
 @stack('scripts')
 </body>
 </html>

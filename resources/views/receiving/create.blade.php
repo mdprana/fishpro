@@ -193,7 +193,7 @@
 
         {{-- Estimasi output nyata berdasarkan berat x yield --}}
         <div id="estOutputBox" class="form-card mb-4 bg-light" style="display:none">
-            <h6 class="fw-bold mb-2">📊 Estimasi Output dari Penerimaan Ini</h6>
+            <h6 class="fw-bold mb-2">Estimasi Output dari Penerimaan Ini</h6>
             <div class="row g-2" id="estOutputRows"></div>
             <p class="text-muted small mb-0 mt-2">*Berdasarkan estimasi yield di master data</p>
         </div>

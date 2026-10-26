@@ -44,7 +44,7 @@
 {{-- Timeline proses: tanggal bongkar, potong, trimming, steak, packing --}}
 <div class="form-card mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h6 class="fw-bold mb-0">🧭 Timeline Proses</h6>
+        <h6 class="fw-bold mb-0">Timeline Proses</h6>
         <div class="text-end">
             <span class="text-muted" style="font-size:.7rem">Recovery</span>
             @php $rec = $po->recovery_pct; @endphp
@@ -94,14 +94,14 @@
 
 {{-- Progress per produk --}}
 <div class="form-card mb-4">
-    <h6 class="fw-bold mb-3">🎯 Progress per Produk</h6>
+    <h6 class="fw-bold mb-3">Progress per Produk</h6>
     <div class="table-responsive">
         <table class="table table-sm align-middle mb-0" style="font-size:.83rem">
             <thead>
-                <tr style="font-size:.72rem;color:#94a3b8;background:#f8fafc">
+                <tr>
                     <th>Produk</th><th>Target</th>
-                    <th style="min-width:130px">⚙️ Proses</th>
-                    <th style="min-width:130px">📦 Packing</th>
+                    <th style="min-width:130px">Proses</th>
+                    <th style="min-width:130px">Packing</th>
                     <th>Stok Siap Pack</th><th>Sisa Box</th>
                 </tr>
             </thead>
@@ -149,9 +149,9 @@
                         </div>
                         <div class="text-muted" style="font-size:.68rem">{{ number_format($processedKg,1) }}/{{ number_format($targetKg,1) }} kg</div>
                         @if($processPct < 100)
-                        <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:.65rem">↓{{ number_format(100-$processPct,1) }}%</span>
+                        <span class="badge bg-danger-subtle">↓{{ number_format(100-$processPct,1) }}%</span>
                         @else
-                        <span class="badge bg-success-subtle text-success" style="font-size:.65rem">✓</span>
+                        <span class="badge bg-success-subtle">Selesai</span>
                         @endif
                     </td>
                     <td>
@@ -165,9 +165,9 @@
                         </div>
                         <div class="text-muted" style="font-size:.68rem">{{ $packedBox }}/{{ $targetBox }} box · {{ number_format($packedKg,1) }} kg</div>
                         @if($packPct < 100)
-                        <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.65rem">↓{{ number_format(100-$packPct,1) }}%</span>
+                        <span class="badge bg-warning-subtle">↓{{ number_format(100-$packPct,1) }}%</span>
                         @else
-                        <span class="badge bg-success-subtle text-success" style="font-size:.65rem">✓</span>
+                        <span class="badge bg-success-subtle">Selesai</span>
                         @endif
                     </td>
                     <td>
@@ -188,11 +188,11 @@
 {{-- Surplus --}}
 @if($surpluses->count() > 0)
 <div class="form-card mb-4" style="border-left:3px solid #fbbf24">
-    <h6 class="fw-bold mb-3">📦 Stok Sisa / Surplus dari PO ini</h6>
+    <h6 class="fw-bold mb-3">Stok Sisa / Surplus dari PO ini</h6>
     <div class="row g-2">
         @foreach($surpluses as $s)
         <div class="col-6 col-md-3">
-            <div class="p-3 rounded-3" style="background:#fffbeb;border:1px solid #fde68a">
+            <div class="p-3 rounded-3" style="background:var(--amber-50)">
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <span class="color-dot" style="background:{{ $s->productType->effective_color }}"></span>
                     <span class="fw-semibold small">{{ $s->productType->name }}</span>
@@ -200,7 +200,7 @@
                 <div class="fw-bold" style="font-size:1.2rem">{{ $s->weight_kg }} kg</div>
                 @if($s->box_count > 0)<div class="text-muted small">{{ $s->box_count }} box</div>@endif
                 <div class="d-flex justify-content-between mt-1">
-                    <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.64rem">{{ $s->getTypeLabel() }}</span>
+                    <span class="badge" style="background:#FBF0DA;color:#A66A08;font-size:.64rem">{{ $s->getTypeLabel() }}</span>
                     <span class="text-muted" style="font-size:.67rem">{{ $s->surplus_code }}</span>
                 </div>
             </div>

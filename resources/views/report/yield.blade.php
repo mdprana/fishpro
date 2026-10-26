@@ -29,9 +29,9 @@
     $rec = $summary['recovery_pct'];
     $recColor = $rec >= 45 ? 'success' : ($rec >= 30 ? 'warning' : 'danger');
     $recBg = match ($recColor) {
-        'success' => '#dcfce7',
-        'warning' => '#fef3c7',
-        default   => '#fee2e2',
+        'success' => '#E2F4E6',
+        'warning' => '#FBF0DA',
+        default   => '#FDE8E5',
     };
 @endphp
 <div class="row g-2 mb-3">
@@ -64,7 +64,7 @@
 {{-- Alert toleransi --}}
 <div class="form-card mb-3 {{ $alerts->count() ? 'border-danger' : '' }}">
     <h6 class="fw-bold mb-1">
-        ⚠️ Alert Penyusutan Melebihi Toleransi
+        Alert Penyusutan Melebihi Toleransi
         @if($alerts->count())<span class="badge bg-danger ms-1">{{ $alerts->count() }}</span>@endif
     </h6>
     @if($alerts->count())
@@ -243,14 +243,14 @@ new Chart(document.getElementById('stageChart'), {
     data: {
         labels: @json($stageChart['labels']),
         datasets: [
-            { label: 'Hasil (kg)',  data: @json($stageChart['output']), backgroundColor: '#16a34a' },
-            { label: 'Limbah (kg)', data: @json($stageChart['waste']),  backgroundColor: '#dc2626' },
+            { label: 'Hasil (kg)',  data: @json($stageChart['output']), backgroundColor: '#147A3A' },
+            { label: 'Limbah (kg)', data: @json($stageChart['waste']),  backgroundColor: '#B42318' },
         ],
     },
     options: {
         responsive: true,
         // Bertumpuk supaya tinggi batang = total bahan yang masuk tahap itu.
-        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, grid: { color: '#EFF1F3' } } },
         plugins: { legend: { position: 'bottom' } },
     },
 });
@@ -262,15 +262,16 @@ new Chart(document.getElementById('trendChart'), {
         datasets: [{
             label: 'Recovery harian (%)',
             data: @json($trend['values']),
-            borderColor: '#2563eb',
-            backgroundColor: '#2563eb22',
+            borderColor: '#17191F',
+            backgroundColor: 'rgba(23,25,31,.08)',
+            fill: true,
             tension: .3,
             spanGaps: true,   // hari tanpa penerimaan tidak memutus garis
         }],
     },
     options: {
         responsive: true,
-        scales: { y: { beginAtZero: true, ticks: { callback: v => v + '%' } } },
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: '#EFF1F3' }, ticks: { callback: v => v + '%' } } },
         plugins: { legend: { display: false } },
     },
 });

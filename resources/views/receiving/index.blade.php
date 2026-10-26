@@ -16,7 +16,7 @@
 {{-- Stok per Subgroup --}}
 @if($stocks->count() > 0)
 <div class="form-card mb-4">
-    <h6 class="fw-bold mb-3">🏪 Stok Saat Ini</h6>
+    <h6 class="fw-bold mb-3">Stok Saat Ini</h6>
     @php $grouped = $stocks->groupBy(fn($s) => $s->subgroup->group->name ?? 'Lainnya'); @endphp
     @foreach($grouped as $groupName => $groupStocks)
     <div class="mb-3">

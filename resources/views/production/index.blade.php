@@ -28,10 +28,10 @@
     <div class="col-6 col-lg-3">
         <div class="form-card h-100">
             <div class="d-flex align-items-center gap-2">
-                <i class="bi {{ $icon }} fs-4" style="color:{{ $color }}"></i>
+                <i class="bi {{ $icon }} fs-4" style="color:var(--color-neutral-400)"></i>
                 <div>
-                    <div class="text-muted" style="font-size:.7rem">{{ $label }}</div>
-                    <div class="fw-bold">{{ $value }}</div>
+                    <div class="text-body-regular">{{ $label }}</div>
+                    <div class="text-heading-brand text-dark">{{ $value }}</div>
                 </div>
             </div>
         </div>

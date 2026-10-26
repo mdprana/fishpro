@@ -78,7 +78,7 @@
 
         @php
             $level = $evaluation['level'] ?? 'none';
-            $bg    = ['below' => '#fee2e2', 'warn' => '#fef3c7', 'ok' => '#dcfce7'][$level] ?? '#f1f5f9';
+            $bg    = ['below' => '#FDE8E5', 'warn' => '#FBF0DA', 'ok' => '#E2F4E6'][$level] ?? '#F5F7F9';
             $color = ['below' => 'danger', 'warn' => 'warning', 'ok' => 'success'][$level] ?? 'secondary';
         @endphp
         <div class="form-card text-center" style="background:{{ $bg }}">

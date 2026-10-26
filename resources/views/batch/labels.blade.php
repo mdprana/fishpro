@@ -30,7 +30,7 @@
     @foreach($batches as $b)
     <div class="label-sheet">
         <div class="label-head">
-            <span class="label-brand">🐟 FishPro</span>
+            <span class="label-brand">FishPro</span>
             <span class="label-stage">{{ $b->stage_label }}</span>
         </div>
 

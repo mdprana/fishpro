@@ -5,7 +5,7 @@
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h4 class="fw-bold mb-1">📋 Purchase Order</h4>
+        <h4 class="fw-bold mb-1">Purchase Order</h4>
         <p class="text-muted mb-0 small">Kelola semua order produksi</p>
     </div>
     <a href="{{ route('po.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Buat PO</a>

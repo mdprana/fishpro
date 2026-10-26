@@ -11,7 +11,7 @@
     <div class="d-flex align-items-center gap-3 mb-4">
         <a href="{{ route('po.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
         <div>
-            <h4 class="fw-bold mb-0">📋 Buat Purchase Order Baru</h4>
+            <h4 class="fw-bold mb-0">Buat Purchase Order Baru</h4>
             <p class="text-muted mb-0 small">Pilih Group → Tipe Produk. Target box ↔ berat/box saling hitung otomatis.</p>
         </div>
     </div>
@@ -77,7 +77,7 @@
 
         {{-- Summary --}}
         <div class="form-card mb-4 bg-light" id="summaryCard" style="display:none">
-            <h6 class="fw-bold mb-2" style="font-size:.88rem">📊 Ringkasan</h6>
+            <h6 class="fw-bold mb-2" style="font-size:.88rem">Ringkasan</h6>
             <div class="row g-2 text-center">
                 <div class="col-4"><div class="p-2 bg-white rounded-2">
                     <div class="text-muted small">Produk</div>

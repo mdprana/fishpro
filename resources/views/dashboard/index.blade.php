@@ -5,8 +5,8 @@
 @section('content')
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h4 class="fw-bold mb-1">Dashboard Produksi 🐟</h4>
-        <p class="text-muted mb-0 small">{{ now()->format('l, d M Y') }}</p>
+        <h4 class="fw-bold mb-1">Dashboard Produksi</h4>
+        <p class="text-body-regular mb-0">{{ now()->format('l, d M Y') }}</p>
     </div>
     <a href="{{ route('po.create') }}" class="btn btn-primary btn-sm">
         <i class="bi bi-plus-lg me-1"></i>Buat PO
@@ -23,11 +23,11 @@
         <a href="{{ route('report.yield') }}" class="text-decoration-none">
             <div class="stat-card h-100">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <span class="text-muted small">Recovery Pabrik</span>
-                    <span style="font-size:1.4rem">🎯</span>
+                    <span class="text-body-regular">Recovery Pabrik</span>
+                    <i class="bi bi-bullseye text-muted"></i>
                 </div>
-                <div class="fw-bold text-{{ $recColor }}" style="font-size:2rem">{{ number_format($rec, 1) }}%</div>
-                <div class="text-muted" style="font-size:.72rem">
+                <div class="text-kpi-value text-{{ $recColor }}">{{ number_format($rec, 1) }}%</div>
+                <div class="text-body-small text-muted">
                     {{ number_format($recovery['packing_kg'], 1) }} kg packing ÷
                     {{ number_format($recovery['bahan_kg'], 1) }} kg bahan baku
                 </div>
@@ -35,13 +35,13 @@
         </a>
     </div>
     <div class="col-12 col-lg-8">
-        <div class="stat-card h-100 {{ $yieldAlerts->count() ? 'border border-danger' : '' }}">
+        <div class="stat-card h-100 {{ $yieldAlerts->count() ? 'border-danger' : '' }}">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-muted small">
-                    ⚠️ Penyusutan Melebihi Toleransi
+                <span class="text-body-regular">
+                    Penyusutan Melebihi Toleransi
                     @if($yieldAlerts->count())<span class="badge bg-danger ms-1">{{ $yieldAlerts->count() }}</span>@endif
                 </span>
-                <a href="{{ route('report.yield') }}" class="small">Lihat semua</a>
+                <a href="{{ route('report.yield') }}" class="text-body-regular">Lihat semua</a>
             </div>
             @forelse($yieldAlerts as $a)
             <a href="{{ route('stage.show', $a['record']) }}"
@@ -72,37 +72,37 @@
     <div class="col-6 col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="text-muted small">PO Aktif</span>
-                <span style="font-size:1.4rem">📋</span>
+                <span class="text-body-regular">PO Aktif</span>
+                <i class="bi bi-file-earmark-text text-muted"></i>
             </div>
-            <div class="fw-bold" style="font-size:2rem;color:#1a3a5c">{{ $summary['total_active_po'] }}</div>
+            <div class="text-kpi-value text-dark">{{ $summary['total_active_po'] }}</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="text-muted small">Output Hari Ini</span>
-                <span style="font-size:1.4rem">⚙️</span>
+                <span class="text-body-regular">Output Hari Ini</span>
+                <i class="bi bi-gear text-muted"></i>
             </div>
-            <div class="fw-bold text-success" style="font-size:2rem">{{ $summary['today_output_kg'] }}<span class="text-muted small fw-normal"> kg</span></div>
+            <div class="text-kpi-value text-dark">{{ $summary['today_output_kg'] }}<span class="text-body-regular text-muted"> kg</span></div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="text-muted small">Total Box Packed</span>
-                <span style="font-size:1.4rem">📦</span>
+                <span class="text-body-regular">Total Box Packed</span>
+                <i class="bi bi-box-seam text-muted"></i>
             </div>
-            <div class="fw-bold text-warning" style="font-size:2rem">{{ number_format($summary['total_packed_box']) }}</div>
+            <div class="text-kpi-value text-dark">{{ number_format($summary['total_packed_box']) }}</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="text-muted small">Alert Aktif</span>
-                <span style="font-size:1.4rem">⚠️</span>
+                <span class="text-body-regular">Alert Aktif</span>
+                <i class="bi bi-exclamation-triangle text-muted"></i>
             </div>
-            <div class="fw-bold text-danger" style="font-size:2rem">{{ $summary['total_alerts'] }}</div>
+            <div class="text-kpi-value text-dark">{{ $summary['total_alerts'] }}</div>
         </div>
     </div>
 </div>
@@ -115,27 +115,27 @@
             <a href="{{ route('po.show',$po['id']) }}" class="fw-bold text-decoration-none" style="font-size:1rem">
                 {{ $po['po_number'] }}
             </a>
-            @if($po['is_overdue'])<span class="badge bg-danger ms-1" style="font-size:.62rem">OVERDUE</span>@endif
+            @if($po['is_overdue'])<span class="badge bg-danger ms-1">OVERDUE</span>@endif
             <span class="text-muted small ms-2">{{ $po['buyer_name'] }}</span>
         </div>
         <div class="d-flex align-items-center gap-2">
             @php $dL = $po['days_left']; @endphp
             @if($dL > 0)<span class="badge bg-success-subtle text-success">{{ $dL }}h lagi</span>
-            @elseif($dL === 0)<span class="badge bg-warning text-dark">Hari ini!</span>
+            @elseif($dL === 0)<span class="badge bg-warning">Hari ini!</span>
             @else<span class="badge bg-danger">Terlambat {{ abs($dL) }}h</span>@endif
             <span class="text-muted small">{{ $po['deadline'] }}</span>
         </div>
     </div>
 
     <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0" style="font-size:.82rem">
+        <table class="table table-sm table-custom align-middle mb-0">
             <thead>
-                <tr style="font-size:.7rem;color:#94a3b8;background:#f8fafc">
+                <tr>
                     <th style="width:160px">Produk</th>
                     <th>Target</th>
-                    <th style="min-width:120px">⚙️ Proses</th>
+                    <th style="min-width:120px">Proses</th>
                     <th>Status Proses</th>
-                    <th style="min-width:120px">📦 Packing</th>
+                    <th style="min-width:120px">Packing</th>
                     <th>Status Packing</th>
                     <th>Sisa Box</th>
                 </tr>
@@ -169,9 +169,9 @@
                     </td>
                     <td>
                         @if($item['process_pct'] < 100)
-                        <span class="badge" style="background:#fee2e2;color:#991b1b;font-size:.67rem">↓{{ number_format(100-$item['process_pct'],1) }}%</span>
+                        <span class="badge bg-danger-subtle">↓{{ number_format(100-$item['process_pct'],1) }}%</span>
                         @else
-                        <span class="badge bg-success-subtle text-success" style="font-size:.67rem">✓</span>
+                        <span class="badge bg-success-subtle">Selesai</span>
                         @endif
                     </td>
                     <td>
@@ -187,9 +187,9 @@
                     </td>
                     <td>
                         @if($item['pack_pct'] < 100)
-                        <span class="badge" style="background:#fef3c7;color:#92400e;font-size:.67rem">↓{{ number_format(100-$item['pack_pct'],1) }}%</span>
+                        <span class="badge bg-warning-subtle">↓{{ number_format(100-$item['pack_pct'],1) }}%</span>
                         @else
-                        <span class="badge bg-success-subtle text-success" style="font-size:.67rem">✓</span>
+                        <span class="badge bg-success-subtle">Selesai</span>
                         @endif
                     </td>
                     <td class="fw-bold text-{{ $item['remaining_box'] > 0 ? 'warning' : 'success' }}" style="font-size:.82rem">
@@ -213,14 +213,14 @@
     <div class="col-12 col-xl-5">
         <div class="stat-card h-100">
             <h6 class="fw-bold mb-3">
-                <i class="bi bi-bell-fill text-danger me-2"></i>Early Warning
+                <i class="bi bi-bell me-2"></i>Early Warning
                 @if($summary['total_alerts'] > 0)
                 <span class="badge bg-danger ms-1">{{ $summary['total_alerts'] }}</span>
                 @endif
             </h6>
             @forelse($summary['alerts'] as $alert)
             <div class="d-flex align-items-start gap-2 p-2 mb-2 rounded-2"
-                 style="{{ $alert['type']==='danger' ? 'background:#fff5f5;border:1px solid #fecaca' : 'background:#fffbeb;border:1px solid #fde68a' }}">
+                 style="{{ $alert['type']==='danger' ? 'background:var(--red-50)' : 'background:var(--amber-50)' }}">
                 <div class="rounded-1 flex-shrink-0 mt-1" style="width:4px;height:38px;background:{{ $alert['color'] }}"></div>
                 <div class="flex-grow-1 min-w-0">
                     <div class="d-flex justify-content-between align-items-start gap-1">
@@ -229,13 +229,11 @@
                             <span class="text-muted" style="font-size:.72rem"> · {{ $alert['po_number'] }}</span>
                         </div>
                         @if($alert['po_id'])
-                        <a href="{{ route('po.show',$alert['po_id']) }}" class="btn btn-outline-secondary py-0 px-1 flex-shrink-0" style="font-size:.65rem">detail</a>
+                        <a href="{{ route('po.show',$alert['po_id']) }}" class="btn btn-sm btn-outline-secondary">detail</a>
                         @endif
                     </div>
                     <div class="text-muted" style="font-size:.74rem">
-                        @if($alert['category']==='proses')⚙️
-                        @elseif($alert['category']==='packing')📦
-                        @else🏪@endif
+                        <i class="bi {{ $alert['category']==='proses' ? 'bi-gear' : ($alert['category']==='packing' ? 'bi-box-seam' : 'bi-shop') }} me-1"></i>
                         {{ $alert['message'] }}
                     </div>
                     <div class="progress mt-1" style="height:4px">
@@ -247,7 +245,7 @@
             @empty
             <div class="text-center text-muted py-4">
                 <i class="bi bi-check-circle fs-2 text-success d-block mb-2"></i>
-                Semua produksi on track! 🎉
+                Semua produksi on track.
             </div>
             @endforelse
         </div>
@@ -259,8 +257,8 @@
             <div class="col-12">
                 <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0" style="font-size:.88rem">🏪 Stok Bahan Baku</h6>
-                        <a href="{{ route('receiving.create') }}" class="btn btn-outline-primary py-0 px-2" style="font-size:.72rem">+ Terima</a>
+                        <h6 class="fw-bold mb-0" style="font-size:.88rem">Stok Bahan Baku</h6>
+                        <a href="{{ route('receiving.create') }}" class="btn btn-sm btn-outline-primary">+ Terima</a>
                     </div>
                     @php $byGroup = collect($stockSummary)->groupBy('group'); @endphp
                     @if($byGroup->count() > 0)
@@ -293,7 +291,7 @@
             {{-- Output harian + Surplus --}}
             <div class="col-12 col-md-6">
                 <div class="stat-card h-100">
-                    <h6 class="fw-bold mb-2" style="font-size:.85rem">📊 Output Hari Ini</h6>
+                    <h6 class="fw-bold mb-2" style="font-size:.85rem">Output Hari Ini</h6>
                     @forelse($dailyStats as $ds)
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <div class="d-flex align-items-center gap-2">
@@ -311,7 +309,7 @@
 
             <div class="col-12 col-md-6">
                 <div class="stat-card h-100">
-                    <h6 class="fw-bold mb-2" style="font-size:.85rem">📦 Stok Sisa PO</h6>
+                    <h6 class="fw-bold mb-2" style="font-size:.85rem">Stok Sisa PO</h6>
                     @forelse($surpluses as $s)
                     <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-light rounded-2">
                         <div>
@@ -352,16 +350,16 @@ new Chart(document.getElementById('weeklyChart'), {
         labels: w.map(d => d.date),
         datasets: [{
             data: w.map(d => d.output_kg),
-            backgroundColor: 'rgba(13,110,253,.65)',
-            borderColor: '#0d6efd', borderWidth: 1, borderRadius: 4,
+            backgroundColor: 'rgba(23,25,31,.85)',
+            borderColor: '#17191F', borderWidth: 0, borderRadius: 4,
         }]
     },
     options: {
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+            y: { beginAtZero: true, grid: { color: '#EFF1F3' }, ticks: { color: '#9BA0A6', font: { family: 'Inter', size: 11 } } },
+            x: { grid: { display: false }, ticks: { color: '#9BA0A6', font: { family: 'Inter', size: 11 } } }
         }
     }
 });
