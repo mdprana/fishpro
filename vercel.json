@@ -27,6 +27,7 @@
         "DB_DATABASE": "/tmp/fishpro.sqlite",
         "CACHE_STORE": "array",
         "SESSION_DRIVER": "cookie",
+        "SESSION_SECURE_COOKIE": "true",
         "LOG_CHANNEL": "stderr",
         "QUEUE_CONNECTION": "sync",
         "MAIL_MAILER": "log"
