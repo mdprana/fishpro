@@ -10,7 +10,7 @@
     <div>
         <h4 class="fw-bold mb-1" style="font-family:ui-monospace,monospace;font-size:1.05rem">{{ $batch->batch_number }}</h4>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="badge" style="background:{{ $batch->stage?->color ?? '#64748b' }}22;color:{{ $batch->stage?->color ?? '#475569' }}">
+            <span class="badge dyn-text" style="background:{{ $batch->stage?->color ?? '#64748b' }}22;--c:{{ $batch->stage?->color ?? '#475569' }}">
                 {{ $batch->stage_label }}
             </span>
             <span class="badge bg-{{ $batch->status_color }}-subtle text-{{ $batch->status_color }}">{{ $batch->status_label }}</span>

@@ -18,7 +18,7 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div class="d-flex align-items-center gap-3">
             <div class="rounded-2 d-flex align-items-center justify-content-center fw-bold text-white"
-                 style="width:42px;height:42px;background:{{ $group->color }};font-size:.85rem">
+                 style="width:42px;height:42px;background:color-mix(in srgb,{{ $group->color }} 45%,#000);font-size:.85rem">
                 {{ strtoupper(substr($group->name,0,2)) }}
             </div>
             <div>
@@ -48,7 +48,7 @@
             <div class="p-2 rounded-3 d-flex align-items-center justify-content-between"
                  style="background:{{ $pt->effective_color }}15;border:1px solid {{ $pt->effective_color }}33">
                 <div>
-                    <div class="fw-semibold" style="color:{{ $pt->effective_color }};font-size:.85rem">{{ $pt->name }}</div>
+                    <div class="fw-semibold dyn-text" style="--c:{{ $pt->effective_color }};font-size:.85rem">{{ $pt->name }}</div>
                     <div class="text-muted" style="font-size:.68rem">
                         PO: {{ $pt->po_items_count }} · Output: {{ $pt->stage_outputs_count }} · Box: {{ $pt->packing_boxes_count }}
                     </div>

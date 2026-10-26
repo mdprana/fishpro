@@ -74,7 +74,7 @@
             <div class="d-flex flex-column gap-2">
                 @foreach($rantai as $i => $n)
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge rounded-pill" style="background:{{ $n->stage?->color ?? '#64748b' }};min-width:26px">{{ $i + 1 }}</span>
+                    <span class="badge rounded-pill dyn-text" style="background:{{ $n->stage?->color ?? '#64748b' }}22;--c:{{ $n->stage?->color ?? '#64748b' }};min-width:26px">{{ $i + 1 }}</span>
                     <div class="flex-grow-1 p-2 rounded-3 border {{ $n->id === $batch->id ? 'border-primary bg-primary-subtle' : '' }}">
                         <div style="font-family:ui-monospace,monospace;font-size:.72rem">{{ $n->batch_number }}</div>
                         <div class="text-muted" style="font-size:.7rem">

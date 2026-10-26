@@ -30,7 +30,7 @@
                     $totalBox  = $po->items->sum('target_box');
                     $packedBox = $po->items->sum(fn($i) => $i->packed_box);
                     $pct       = $totalBox > 0 ? round(($packedBox/$totalBox)*100,1) : 0;
-                    $daysLeft  = (int)now()->diffInDays($po->deadline, false);
+                    $daysLeft  = $po->days_remaining_raw;
                 @endphp
                 <tr>
                     <td>
@@ -40,8 +40,8 @@
                     <td>
                         <div class="d-flex flex-wrap gap-1">
                             @foreach($po->items->take(4) as $item)
-                            <span class="badge rounded-pill"
-                                  style="background:{{ $item->productType->effective_color }}22;color:{{ $item->productType->effective_color }};border:1px solid {{ $item->productType->effective_color }}44;font-size:.67rem">
+                            <span class="badge rounded-pill dyn-text"
+                                  style="background:{{ $item->productType->effective_color }}22;--c:{{ $item->productType->effective_color }};border:1px solid {{ $item->productType->effective_color }}44;font-size:.67rem">
                                 {{ $item->productType->name }}
                             </span>
                             @endforeach
@@ -69,8 +69,8 @@
                         @if($kol['first'])
                             {{ \Illuminate\Support\Carbon::parse($kol['first'])->format('d/m/y') }}
                             @php
-                                $hari = \Illuminate\Support\Carbon::parse($kol['first'])
-                                        ->diffInDays(\Illuminate\Support\Carbon::parse($kol['last']));
+                                $hari = (int) \Illuminate\Support\Carbon::parse($kol['first'])->startOfDay()
+                                        ->diffInDays(\Illuminate\Support\Carbon::parse($kol['last'])->startOfDay());
                             @endphp
                             @if($hari > 0)
                                 <div class="text-muted" style="font-size:.62rem">+{{ $hari }} hari</div>

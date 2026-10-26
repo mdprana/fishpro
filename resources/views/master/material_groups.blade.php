@@ -19,7 +19,7 @@
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div class="d-flex align-items-center gap-3">
             <div class="rounded-2 d-flex align-items-center justify-content-center fw-bold text-white"
-                 style="width:42px;height:42px;background:{{ $group->color }};font-size:.85rem">
+                 style="width:42px;height:42px;background:color-mix(in srgb,{{ $group->color }} 45%,#000);font-size:.85rem">
                 {{ strtoupper(substr($group->name,0,2)) }}
             </div>
             <div>
@@ -53,7 +53,7 @@
             <div class="p-3 rounded-3 border" style="border-color:{{ $group->color }}44">
                 <div class="d-flex align-items-start justify-content-between mb-2">
                     <div>
-                        <div class="fw-semibold" style="color:{{ $group->color }}">{{ $sub->name }}</div>
+                        <div class="fw-semibold dyn-text" style="--c:{{ $group->color }}">{{ $sub->name }}</div>
                         <div class="small text-muted">
                             Stok: <strong class="text-{{ $stock<10?'danger':($stock<50?'warning':'success') }}">{{ number_format($stock,1) }} kg</strong>
                             @if(!$sub->is_active)<span class="badge bg-secondary ms-1" style="font-size:.65rem">Nonaktif</span>@endif
@@ -75,7 +75,7 @@
                 @if($sub->yieldEstimates->count() > 0)
                 <div class="d-flex flex-wrap gap-1 mb-2">
                     @foreach($sub->yieldEstimates as $ye)
-                    <span class="badge rounded-pill" style="background:{{ $ye->productType->effective_color }}22;color:{{ $ye->productType->effective_color }};border:1px solid {{ $ye->productType->effective_color }}44;font-size:.68rem">
+                    <span class="badge rounded-pill dyn-text" style="background:{{ $ye->productType->effective_color }}22;--c:{{ $ye->productType->effective_color }};border:1px solid {{ $ye->productType->effective_color }}44;font-size:.68rem">
                         {{ $ye->productType->name }}: {{ $ye->percentage }}%
                     </span>
                     @endforeach
@@ -103,8 +103,8 @@
                                     <select name="product_type_id[]" class="form-select form-select-sm flex-grow-1" required>
                                         <option value="">-- Pilih Produk --</option>
                                         @foreach($productTypes as $pt)
-                                        <option value="{{ $pt->id }}"
-                                            style="color:{{ $pt->effective_color }}"
+                                        <option value="{{ $pt->id }}" class="dyn-text"
+                                            style="--c:{{ $pt->effective_color }}"
                                             {{ $ye->product_type_id==$pt->id?'selected':'' }}>
                                             {{ $pt->group_name }} → {{ $pt->name }}
                                         </option>

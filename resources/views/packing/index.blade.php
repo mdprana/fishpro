@@ -32,7 +32,7 @@
                     <td class="small">{{ $run->packing_date->format('d/m/Y') }}</td>
                     <td class="small">{{ $run->purchaseOrder?->po_number }}</td>
                     <td>
-                        <span class="badge" style="background:{{ $run->productType?->effective_color }}22;color:{{ $run->productType?->effective_color }};font-size:.68rem">
+                        <span class="badge dyn-text" style="background:{{ $run->productType?->effective_color }}22;--c:{{ $run->productType?->effective_color }};font-size:.68rem">
                             {{ $run->productType?->name }}
                         </span>
                     </td>

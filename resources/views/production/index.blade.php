@@ -10,8 +10,8 @@
     </div>
     <div class="d-flex gap-2 flex-wrap">
         @foreach($stages as $st)
-        <a href="{{ route('stage.create', $st->code) }}" class="btn btn-sm"
-           style="background:{{ $st->color }}18;border:1px solid {{ $st->color }}55;color:{{ $st->color }}">
+        <a href="{{ route('stage.create', $st->code) }}" class="btn btn-sm dyn-text"
+           style="background:{{ $st->color }}18;border:1px solid {{ $st->color }}55;--c:{{ $st->color }}">
             <i class="bi {{ $st->icon }} me-1"></i>{{ \Illuminate\Support\Str::of($st->name)->before(' (') }}
         </a>
         @endforeach
@@ -80,7 +80,7 @@
                            style="font-family:ui-monospace,monospace;font-size:.76rem">{{ $r->record_code }}</a>
                     </td>
                     <td>
-                        <span class="badge" style="background:{{ $r->stage->color }}22;color:{{ $r->stage->color }};font-size:.68rem">
+                        <span class="badge dyn-text" style="background:{{ $r->stage->color }}22;--c:{{ $r->stage->color }};font-size:.68rem">
                             {{ $r->stage->name }}
                         </span>
                     </td>

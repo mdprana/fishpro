@@ -171,7 +171,7 @@
                 </div>
             </div>
 
-            <div class="text-center py-2 rounded-3" id="yieldBox" style="background:#F5F7F9">
+            <div class="text-center py-2 rounded-3" id="yieldBox" style="background:var(--color-neutral-50)">
                 <div class="text-muted" style="font-size:.7rem">Yield Aktual</div>
                 <div class="fw-bold" style="font-size:2rem" id="yieldValue">-</div>
                 <div class="small" id="yieldStandardText">Standar belum diatur untuk bahan ini.</div>
@@ -483,7 +483,7 @@ function updateYield(totalIn, mainOut) {
 
     if (totalIn <= 0) {
         value.textContent = '-';
-        box.style.background = '#F5F7F9';
+        box.style.background = 'var(--color-neutral-50)';
         alert.style.display = 'none';
         notesReq.style.display = notesHint.style.display = 'none';
         document.getElementById('notesField').required = false;
@@ -496,7 +496,7 @@ function updateYield(totalIn, mainOut) {
     const std = activeStandard();
     if (!std) {
         text.textContent = 'Standar belum diatur untuk bahan ini.';
-        box.style.background = '#F5F7F9';
+        box.style.background = 'var(--color-neutral-50)';
         value.className = 'fw-bold';
         alert.style.display = 'none';
         notesReq.style.display = notesHint.style.display = 'none';
@@ -506,11 +506,11 @@ function updateYield(totalIn, mainOut) {
 
     text.textContent = `Standar minimal ${std.min}%` + (std.target ? ` · target ${std.target}%` : '');
 
-    let bg = '#E2F4E6', color = 'text-success', below = false;
+    let bg = 'var(--green-50)', color = 'text-success', below = false;
     if (pct < std.min) {
-        bg = '#FDE8E5'; color = 'text-danger'; below = true;
+        bg = 'var(--red-50)'; color = 'text-danger'; below = true;
     } else if (std.warn !== null && pct < std.warn) {
-        bg = '#FBF0DA'; color = 'text-warning';
+        bg = 'var(--amber-50)'; color = 'text-warning';
     }
 
     box.style.background = bg;

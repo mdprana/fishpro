@@ -80,8 +80,8 @@
                     <input type="hidden" name="items[{{ $idx }}][id]" value="{{ $item->id }}">
 
                     <div class="mb-2">
-                        <span class="badge fw-semibold" id="itemBadge{{ $idx }}"
-                              style="background:{{ $item->productType->effective_color }}22;color:{{ $item->productType->effective_color }};border:1px solid {{ $item->productType->effective_color }}44;font-size:.72rem">
+                        <span class="badge fw-semibold dyn-text" id="itemBadge{{ $idx }}"
+                              style="background:{{ $item->productType->effective_color }}22;--c:{{ $item->productType->effective_color }};border:1px solid {{ $item->productType->effective_color }}44;font-size:.72rem">
                             {{ $item->productType->group_name }} → {{ $item->productType->name }}
                         </span>
                     </div>
@@ -110,8 +110,8 @@
                                 <input type="radio" class="btn-check" name="pt_radio_{{ $idx }}"
                                        id="ptr{{ $idx }}_{{ $pt['id'] }}" value="{{ $pt['id'] }}"
                                        {{ $item->product_type_id == $pt['id'] ? 'checked' : '' }}>
-                                <label class="btn btn-sm product-btn" for="ptr{{ $idx }}_{{ $pt['id'] }}"
-                                       style="background:{{ $pt['color'] }}18;border:1px solid {{ $pt['color'] }}55;color:{{ $pt['color'] }};font-size:.73rem;padding:.2rem .5rem">
+                                <label class="btn btn-sm product-btn dyn-text" for="ptr{{ $idx }}_{{ $pt['id'] }}"
+                                       style="background:{{ $pt['color'] }}18;border:1px solid {{ $pt['color'] }}55;--c:{{ $pt['color'] }};font-size:.73rem;padding:.2rem .5rem">
                                     {{ $pt['name'] }}
                                 </label>
                                 @endforeach
@@ -250,8 +250,8 @@ function onGroupChange(sel, idx) {
         });
         const lbl = document.createElement('label');
         lbl.htmlFor = `ptr${idx}_${pt.id}`;
-        lbl.className = 'btn btn-sm product-btn';
-        lbl.style.cssText = `background:${pt.color}18;border:1px solid ${pt.color}55;color:${pt.color};font-size:.73rem;padding:.2rem .5rem`;
+        lbl.className = 'btn btn-sm product-btn dyn-text';
+        lbl.style.cssText = `background:${pt.color}18;border:1px solid ${pt.color}55;--c:${pt.color};font-size:.73rem;padding:.2rem .5rem`;
         lbl.textContent = pt.name;
         btns.appendChild(inp); btns.appendChild(lbl);
     });
@@ -269,7 +269,7 @@ document.querySelectorAll('.item-row').forEach(row => {
 
 function updateBadge(idx, name, color) {
     const b = document.getElementById('itemBadge' + idx);
-    if (b) { b.textContent = name; b.style.cssText = `background:${color}22;color:${color};border:1px solid ${color}44;font-size:.72rem`; }
+    if (b) { b.textContent = name; b.style.cssText = `background:${color}22;--c:${color};border:1px solid ${color}44;font-size:.72rem`; }
 }
 
 function bindRowEvents(el) {

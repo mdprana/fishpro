@@ -53,7 +53,8 @@ class YieldStandardController extends Controller
         $data += ['material_subgroup_id' => null, 'process_stage_id' => null];
 
         DB::transaction(function () use ($data) {
-            $berlakuDari = \Illuminate\Support\Carbon::parse($data['effective_from']);
+            $berlakuDari = \Illuminate\Support\Carbon::parse($data['effective_from'])->startOfDay();
+            $data['effective_from'] = $berlakuDari->toDateString();
 
             // Tutup versi sebelumnya sehari sebelum versi baru mulai berlaku,
             // sehingga tidak ada dua standar yang berlaku pada hari yang sama.
@@ -62,7 +63,7 @@ class YieldStandardController extends Controller
                 ->where('material_subgroup_id', $data['material_subgroup_id'])
                 ->where('process_stage_id', $data['process_stage_id'])
                 ->whereNull('effective_to')
-                ->update(['effective_to' => $berlakuDari->copy()->subDay()]);
+                ->update(['effective_to' => $berlakuDari->copy()->subDay()->toDateString()]);
 
             YieldStandard::create($data + [
                 'scope'      => 'stage',
@@ -77,7 +78,7 @@ class YieldStandardController extends Controller
     /** Hentikan sebuah standar tanpa menghapus jejaknya. */
     public function close(YieldStandard $standard): RedirectResponse
     {
-        $standard->update(['effective_to' => today(), 'is_active' => false]);
+        $standard->update(['effective_to' => today()->toDateString(), 'is_active' => false]);
 
         return back()->with('success', 'Standar dihentikan per hari ini dan tersimpan sebagai riwayat.');
     }

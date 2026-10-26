@@ -195,8 +195,8 @@ function onGroupChange(sel, idx) {
 
         const lbl = document.createElement('label');
         lbl.htmlFor = `ptr${idx}_${pt.id}`;
-        lbl.className = 'btn btn-sm product-btn';
-        lbl.style.cssText = `background:${pt.color}18;border:1px solid ${pt.color}55;color:${pt.color};font-size:.73rem;padding:.2rem .5rem`;
+        lbl.className = 'btn btn-sm product-btn dyn-text';
+        lbl.style.cssText = `background:${pt.color}18;border:1px solid ${pt.color}55;--c:${pt.color};font-size:.73rem;padding:.2rem .5rem`;
         lbl.textContent = pt.name;
 
         btns.appendChild(inp);
@@ -208,7 +208,8 @@ function updateItemBadge(idx, name, color) {
     const badge = document.getElementById('itemBadge' + idx);
     if (badge) {
         badge.textContent = name;
-        badge.style.cssText = `background:${color}22;color:${color};border:1px solid ${color}44;font-size:.72rem`;
+        badge.classList.add('dyn-text');
+        badge.style.cssText = `background:${color}22;--c:${color};border:1px solid ${color}44;font-size:.72rem`;
     }
 }
 

@@ -121,7 +121,7 @@
                         @endif
                     </td>
                     <td>
-                        <span class="badge" style="background:{{ $b->stage?->color ?? '#64748b' }}22;color:{{ $b->stage?->color ?? '#475569' }};font-size:.68rem">
+                        <span class="badge dyn-text" style="background:{{ $b->stage?->color ?? '#64748b' }}22;--c:{{ $b->stage?->color ?? '#475569' }};font-size:.68rem">
                             {{ $b->stage_label }}
                         </span>
                     </td>

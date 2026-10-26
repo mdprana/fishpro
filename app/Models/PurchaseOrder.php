@@ -125,12 +125,12 @@ class PurchaseOrder extends Model
     /** Hari tersisa hingga deadline */
     public function getDaysRemainingAttribute(): int
     {
-        return max(0, now()->diffInDays($this->deadline, false) * -1);
+        return max(0, $this->days_remaining_raw);
     }
 
     public function getDaysRemainingRawAttribute(): int
     {
-        return (int) now()->diffInDays($this->deadline, false);
+        return (int) today()->diffInDays($this->deadline->copy()->startOfDay(), false);
     }
 
     public function scopeActive($query)

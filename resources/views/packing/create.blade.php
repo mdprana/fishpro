@@ -62,7 +62,7 @@
     @foreach($products as $p)
     <div class="col-6 col-lg-3">
         <div class="form-card h-100" style="border-left:4px solid {{ $p['color'] }}">
-            <div class="fw-semibold" style="color:{{ $p['color'] }}">{{ $p['name'] }}</div>
+            <div class="fw-semibold dyn-text" style="--c:{{ $p['color'] }}">{{ $p['name'] }}</div>
             <div class="text-muted" style="font-size:.7rem">Siap dipacking</div>
             <div class="fw-bold fs-5">{{ number_format($p['available_kg'], 2) }} kg</div>
             <div class="text-muted" style="font-size:.7rem">

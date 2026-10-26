@@ -19,8 +19,8 @@
         <div class="text-muted"><i class="bi bi-building me-1"></i>{{ $po->buyer_name }}</div>
         <div class="text-muted small mt-1">
             Order: {{ $po->order_date->format('d M Y') }} →
-            Deadline: <strong class="{{ $po->deadline->isPast()&&$po->status!=='completed'?'text-danger':'' }}">{{ $po->deadline->format('d M Y') }}</strong>
-            @php $dl = (int)now()->diffInDays($po->deadline, false); @endphp
+            @php $dl = $po->days_remaining_raw; @endphp
+            Deadline: <strong class="{{ $dl < 0 && $po->status !== 'completed' ? 'text-danger' : '' }}">{{ $po->deadline->format('d M Y') }}</strong>
             @if($po->status !== 'completed')
                 @if($dl > 0)<span class="badge bg-success ms-1">{{ $dl }} hari lagi</span>
                 @elseif($dl === 0)<span class="badge bg-warning ms-1">Hari ini!</span>
@@ -60,9 +60,9 @@
     <div class="d-flex flex-wrap gap-2">
         @foreach($timeline as $i => $step)
         <div class="flex-grow-1 p-2 rounded-3 border text-center"
-             style="min-width:130px;{{ $step['first'] ? 'border-color:'.$step['color'].'55;background:'.$step['color'].'0d' : 'opacity:.55' }}">
+             style="min-width:130px;{{ $step['first'] ? 'border-color:'.$step['color'].'55;background:'.$step['color'].'0d' : '' }}">
             <div class="mb-1">
-                <i class="bi {{ $step['icon'] }}" style="color:{{ $step['color'] }}"></i>
+                <i class="bi {{ $step['icon'] }} dyn-text" style="--c:{{ $step['color'] }}"></i>
                 <span class="fw-semibold ms-1" style="font-size:.76rem">{{ \Illuminate\Support\Str::of($step['name'])->before(' (') }}</span>
             </div>
             @if($step['first'])
@@ -127,7 +127,7 @@
                         <div class="d-flex align-items-center gap-2">
                             <div class="rounded-1" style="width:5px;height:30px;background:{{ $color }}"></div>
                             <div>
-                                <div class="fw-semibold" style="color:{{ $color }}">{{ $item->productType->name }}</div>
+                                <div class="fw-semibold dyn-text" style="--c:{{ $color }}">{{ $item->productType->name }}</div>
                                 <div class="text-muted" style="font-size:.68rem">
                                     {{ $item->productType->group_name }} · {{ number_format($item->effective_weight_per_box,2) }} kg/box
                                 </div>
@@ -145,7 +145,7 @@
                                     <div class="progress-bar" style="width:{{ min($processPct,100) }}%;background:{{ $color }}"></div>
                                 </div>
                             </div>
-                            <span class="fw-bold" style="min-width:34px;font-size:.76rem;color:{{ $color }}">{{ $processPct }}%</span>
+                            <span class="fw-bold dyn-text" style="min-width:34px;font-size:.76rem;--c:{{ $color }}">{{ $processPct }}%</span>
                         </div>
                         <div class="text-muted" style="font-size:.68rem">{{ number_format($processedKg,1) }}/{{ number_format($targetKg,1) }} kg</div>
                         @if($processPct < 100)
@@ -200,7 +200,7 @@
                 <div class="fw-bold" style="font-size:1.2rem">{{ $s->weight_kg }} kg</div>
                 @if($s->box_count > 0)<div class="text-muted small">{{ $s->box_count }} box</div>@endif
                 <div class="d-flex justify-content-between mt-1">
-                    <span class="badge" style="background:#FBF0DA;color:#A66A08;font-size:.64rem">{{ $s->getTypeLabel() }}</span>
+                    <span class="badge" style="background:var(--amber-50);color:var(--amber-700);font-size:.64rem">{{ $s->getTypeLabel() }}</span>
                     <span class="text-muted" style="font-size:.67rem">{{ $s->surplus_code }}</span>
                 </div>
             </div>
@@ -239,7 +239,7 @@
                     <div>
                         <a href="{{ route('stage.show', $s) }}" class="fw-semibold text-decoration-none"
                            style="font-family:ui-monospace,monospace">{{ $s->record_code }}</a>
-                        <span class="badge ms-1" style="background:{{ $s->stage->color }}22;color:{{ $s->stage->color }};font-size:.7rem">
+                        <span class="badge ms-1 dyn-text" style="background:{{ $s->stage->color }}22;--c:{{ $s->stage->color }};font-size:.7rem">
                             {{ $s->stage->name }}
                         </span>
                         <span class="text-muted small ms-2">{{ $s->process_date->format('d M Y') }}</span>
@@ -289,7 +289,7 @@
             @php $pt = $group->first()->productType; @endphp
             <div class="d-flex align-items-center justify-content-between p-2 mb-2 bg-light rounded-3">
                 <div>
-                    <span class="badge rounded-pill" style="background:{{ $pt->effective_color }}22;color:{{ $pt->effective_color }};border:1px solid {{ $pt->effective_color }}44">
+                    <span class="badge rounded-pill dyn-text" style="background:{{ $pt->effective_color }}22;--c:{{ $pt->effective_color }};border:1px solid {{ $pt->effective_color }}44">
                         {{ $pt->name }}
                     </span>
                     <div class="small fw-semibold mt-1">

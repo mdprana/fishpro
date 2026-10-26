@@ -26,7 +26,7 @@ class DashboardService
                 $targetBox   = (int)$item->target_box;
                 $productName = $item->productType->name;
                 $color       = $item->productType->effective_color;
-                $daysLeft    = (int)now()->diffInDays($po->deadline, false);
+                $daysLeft    = $po->days_remaining_raw;
 
                 $processedKg = $this->processedKgFor($po, $typeId);
                 $packedBox   = (int)$item->packed_box;
@@ -160,7 +160,7 @@ class DashboardService
             ->with(['items.productType.group','items.packingBoxes','stageRecords'])
             ->get()
             ->map(function ($po) {
-                $daysLeft = (int)now()->diffInDays($po->deadline, false);
+                $daysLeft = $po->days_remaining_raw;
 
                 $itemDetails = $po->items->map(function ($item) use ($po) {
                     $typeId      = $item->product_type_id;

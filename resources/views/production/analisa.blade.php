@@ -132,7 +132,7 @@
                     $below = $row['standard_min'] !== null && $row['yield_pct'] < $row['standard_min'];
                 @endphp
                 <tr class="{{ $below ? 'table-danger' : '' }}">
-                    <td><i class="bi {{ $row['icon'] }} me-1" style="color:{{ $row['color'] }}"></i>{{ $row['stage'] }}</td>
+                    <td><i class="bi {{ $row['icon'] }} me-1 dyn-text" style="--c:{{ $row['color'] }}"></i>{{ $row['stage'] }}</td>
                     <td class="text-center">{{ $row['sesi'] }}</td>
                     <td class="text-end">{{ number_format($row['input_kg'], 2) }}</td>
                     <td class="text-end text-success">{{ number_format($row['output_kg'], 2) }}</td>
@@ -187,7 +187,7 @@
                 @forelse($analisa['estimasiVsAktual'] as $row)
                 <tr>
                     <td class="small">{{ $row['bahan'] }}</td>
-                    <td><span class="badge" style="background:{{ $row['color'] }}22;color:{{ $row['color'] }};font-size:.68rem">{{ $row['produk'] }}</span></td>
+                    <td><span class="badge dyn-text" style="background:{{ $row['color'] }}22;--c:{{ $row['color'] }};font-size:.68rem">{{ $row['produk'] }}</span></td>
                     <td class="text-end">{{ number_format($row['input_kg'], 2) }}</td>
                     <td class="text-end">{{ $row['est_pct'] !== null ? number_format($row['est_pct'], 1) . '%' : '-' }}</td>
                     <td class="text-end text-muted">{{ $row['est_kg'] !== null ? number_format($row['est_kg'], 2) : '-' }}</td>
@@ -216,7 +216,7 @@
             <tbody>
                 @foreach($analisa['targetVsPacking'] as $row)
                 <tr>
-                    <td><span class="badge" style="background:{{ $row['color'] }}22;color:{{ $row['color'] }};font-size:.68rem">{{ $row['produk'] }}</span></td>
+                    <td><span class="badge dyn-text" style="background:{{ $row['color'] }}22;--c:{{ $row['color'] }};font-size:.68rem">{{ $row['produk'] }}</span></td>
                     <td class="text-end">{{ number_format($row['target_kg'], 2) }}</td>
                     <td class="text-center">{{ $row['target_box'] }}</td>
                     <td class="text-end text-success">{{ number_format($row['packing_kg'], 2) }}</td>
@@ -240,7 +240,7 @@
         @foreach($analisa['sisaLot'] as $row)
         <div class="col-6 col-lg-3">
             <div class="p-2 rounded-3 border" style="border-color:{{ $row['color'] }}55 !important">
-                <div class="fw-semibold" style="color:{{ $row['color'] }}">{{ $row['produk'] }}</div>
+                <div class="fw-semibold dyn-text" style="--c:{{ $row['color'] }}">{{ $row['produk'] }}</div>
                 <div class="fw-bold">{{ number_format($row['sisa_kg'], 2) }} kg</div>
                 <div class="text-muted" style="font-size:.68rem">{{ $row['lot'] }} lot</div>
             </div>

@@ -125,9 +125,9 @@
                     </td>
                     <td>
                         @foreach($box->sources as $src)
-                        <span class="badge me-1 mb-1" title="{{ $src->rootBatch?->batch_number }}"
+                        <span class="badge me-1 mb-1 dyn-text" title="{{ $src->rootBatch?->batch_number }}"
                               style="background:{{ $chipColor($src->root_batch_id ?? $src->batch_id) }}22;
-                                     color:{{ $chipColor($src->root_batch_id ?? $src->batch_id) }};
+                                     --c:{{ $chipColor($src->root_batch_id ?? $src->batch_id) }};
                                      border:1px solid {{ $chipColor($src->root_batch_id ?? $src->batch_id) }}55;
                                      font-size:.62rem">
                             {{ \Illuminate\Support\Str::afterLast($src->rootBatch?->batch_number ?? '-', '-') }}

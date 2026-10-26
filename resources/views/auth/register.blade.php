@@ -2,15 +2,17 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    @include('layouts._theme_init')
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar - FishPro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     @include('auth._styles')
 </head>
 <body>
+@include('layouts._theme_toggle')
 <main class="auth-stack">
     <div class="auth-brand">
-        <span class="auth-logo"><x-icon name="fish" size="20" /></span>
+        <span class="auth-logo"><x-fish-mark size="24" /></span>
         <span class="text-heading-brand">FishPro</span>
     </div>
 

@@ -147,7 +147,7 @@
                         <div class="d-flex align-items-center gap-2">
                             <div class="rounded-1 flex-shrink-0" style="width:5px;height:32px;background:{{ $item['color'] }}"></div>
                             <div>
-                                <div class="fw-semibold" style="line-height:1.2;color:{{ $item['color'] }}">{{ $item['name'] }}</div>
+                                <div class="fw-semibold dyn-text" style="line-height:1.2;--c:{{ $item['color'] }}">{{ $item['name'] }}</div>
                                 <div class="text-muted" style="font-size:.67rem">{{ $item['group_name'] }} · {{ number_format($item['wpb'],2) }} kg/box</div>
                             </div>
                         </div>
@@ -163,7 +163,7 @@
                                     <div class="progress-bar" style="width:{{ min($item['process_pct'],100) }}%;background:{{ $item['color'] }}"></div>
                                 </div>
                             </div>
-                            <span class="fw-bold" style="min-width:34px;font-size:.76rem;color:{{ $item['color'] }}">{{ $item['process_pct'] }}%</span>
+                            <span class="fw-bold dyn-text" style="min-width:34px;font-size:.76rem;--c:{{ $item['color'] }}">{{ $item['process_pct'] }}%</span>
                         </div>
                         <div class="text-muted" style="font-size:.67rem">{{ number_format($item['processed_kg'],1) }}/{{ number_format($item['target_kg'],1) }} kg</div>
                     </td>
@@ -225,7 +225,7 @@
                 <div class="flex-grow-1 min-w-0">
                     <div class="d-flex justify-content-between align-items-start gap-1">
                         <div>
-                            <span class="fw-semibold" style="font-size:.8rem;color:{{ $alert['color'] }}">{{ $alert['product'] }}</span>
+                            <span class="fw-semibold dyn-text" style="font-size:.8rem;--c:{{ $alert['color'] }}">{{ $alert['product'] }}</span>
                             <span class="text-muted" style="font-size:.72rem"> · {{ $alert['po_number'] }}</span>
                         </div>
                         @if($alert['po_id'])
@@ -313,7 +313,7 @@
                     @forelse($surpluses as $s)
                     <div class="d-flex align-items-center justify-content-between mb-2 p-2 bg-light rounded-2">
                         <div>
-                            <span class="badge rounded-pill" style="background:{{ $s['color'] }}22;color:{{ $s['color'] }};border:1px solid {{ $s['color'] }}44;font-size:.67rem">
+                            <span class="badge rounded-pill dyn-text" style="background:{{ $s['color'] }}22;--c:{{ $s['color'] }};border:1px solid {{ $s['color'] }}44;font-size:.67rem">
                                 {{ $s['product'] }}
                             </span>
                             <div class="text-muted" style="font-size:.67rem">{{ $s['code'] }} · {{ $s['po_number'] }}</div>

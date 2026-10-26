@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    @include('layouts._theme_init')
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title','FishPro') - Fish Processing</title>
@@ -14,16 +15,16 @@
             border-right:1px solid var(--color-neutral-200);display:flex;flex-direction:column;flex-shrink:0;z-index:50}
         .sb-top{padding:19px 18px 0;flex-shrink:0}
         .sb-brand{display:flex;align-items:center;gap:13px;height:48px;color:inherit;text-decoration:none}
-        .sb-logo{width:48px;height:48px;border-radius:14px;background:#1A1D25;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sb-logo{width:48px;height:48px;border-radius:14px;background:var(--color-ink-900);color:var(--on-solid);display:flex;align-items:center;justify-content:center;flex-shrink:0}
         .sb-brand-name{color:var(--color-neutral-900)}
-        .sb-brand-sub{color:var(--color-neutral-400)}
+        .sb-brand-sub{color:var(--text-muted)}
         .sb-search{position:relative;margin-top:37px;height:38px}
         .sb-search input{width:100%;height:38px;border:1px solid transparent;border-radius:10px;background:var(--color-neutral-100);
             padding:0 42px 0 36px;font-size:14px;color:var(--color-neutral-900);outline:none}
-        .sb-search input:focus{background:#fff;border-color:var(--color-neutral-350)}
-        .sb-search input::placeholder{color:var(--color-neutral-400)}
-        .sb-search .sb-search-icon{position:absolute;left:12px;top:11px;color:var(--color-neutral-400);pointer-events:none}
-        .sb-kbd{position:absolute;right:8px;top:9px;width:26px;height:20px;border-radius:6px;background:#fff;color:var(--color-neutral-600);
+        .sb-search input:focus{background:var(--color-neutral-0);border-color:var(--color-neutral-350)}
+        .sb-search input::placeholder{color:var(--text-muted)}
+        .sb-search .sb-search-icon{position:absolute;left:12px;top:11px;color:var(--text-muted);pointer-events:none}
+        .sb-kbd{position:absolute;right:8px;top:9px;width:26px;height:20px;border-radius:6px;background:var(--color-neutral-0);color:var(--color-neutral-600);
             font-size:12px;line-height:20px;text-align:center;pointer-events:none;box-shadow:var(--shadow-raised)}
         .sb-nav{flex:1;min-height:0;overflow-y:auto;padding:21px 18px 12px}
         .sb-nav ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
@@ -33,55 +34,55 @@
             transition:background-color 120ms ease-out,color 120ms ease-out}
         .sb-item:hover{background:var(--color-neutral-100);color:var(--color-neutral-600)}
         .sb-item svg{flex-shrink:0;color:var(--color-neutral-600)}
-        .sb-item.active{background:#fff;box-shadow:var(--shadow-raised);color:var(--color-neutral-900)}
+        .sb-item.active{background:var(--color-neutral-0);box-shadow:var(--shadow-raised);color:var(--color-neutral-900)}
         .sb-item.active svg{color:var(--color-neutral-900)}
         .sb-item.open-parent{color:var(--color-neutral-900);font-weight:500}
         .sb-item.open-parent svg:first-child{color:var(--color-neutral-900)}
         .sb-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .sb-chevron{color:var(--color-neutral-400)!important;transition:transform 150ms ease-out}
+        .sb-chevron{color:var(--text-muted)!important;transition:transform 150ms ease-out}
         .sb-group-btn[aria-expanded="true"] .sb-chevron{transform:rotate(180deg)}
         .sb-sub{margin-top:4px!important}
         .sb-sub .sb-item{height:34px;padding-left:36px}
         .sb-rail-link{display:none!important}
         .sb-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;
-            background:#fff;border:1px solid var(--color-neutral-200);color:var(--color-neutral-900);line-height:1;flex-shrink:0}
+            background:var(--color-neutral-0);border:1px solid var(--color-neutral-200);color:var(--color-neutral-900);line-height:1;flex-shrink:0}
         .sb-bottom{flex-shrink:0;padding:12px 18px 18px}
-        .sb-usage-label{color:var(--color-neutral-400)}
+        .sb-usage-label{color:var(--text-muted)}
         .sb-usage-value{color:var(--color-neutral-900)}
         .sb-progress{height:6px;border-radius:999px;background:var(--color-neutral-200);overflow:hidden;margin:8px 0 12px}
         .sb-progress>span{display:block;height:100%;background:var(--color-ink-900);border-radius:999px}
         .sb-new{display:flex;align-items:center;justify-content:center;gap:8px;height:36px;width:100%;border:1px solid var(--color-neutral-200);
-            border-radius:10px;background:#fff;color:var(--color-neutral-900);font-size:14px;font-weight:500;text-decoration:none;
+            border-radius:10px;background:var(--color-neutral-0);color:var(--color-neutral-900);font-size:14px;font-weight:500;text-decoration:none;
             transition:background-color 120ms ease-out,color 120ms ease-out}
         .sb-new:hover{background:var(--color-neutral-100);color:var(--color-neutral-900)}
         .sb-user{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--color-neutral-200)}
         .sb-avatar{position:relative;width:40px;height:40px;border-radius:50%;background:var(--color-neutral-200);color:var(--color-neutral-900);
             display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
-        .sb-avatar::after{content:"";position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;background:#07B93B;border:2px solid #fff}
+        .sb-avatar::after{content:"";position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;background:#07B93B;border:2px solid var(--color-neutral-0)}
         .sb-user-text{flex:1;min-width:0}
         .sb-user-name{color:var(--color-neutral-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .sb-user-email{color:var(--color-neutral-400);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .sb-user-email{color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:0;border-radius:10px;background:transparent;
             color:var(--color-neutral-600);flex-shrink:0;transition:background-color 120ms ease-out,color 120ms ease-out;text-decoration:none}
         .icon-btn:hover{background:var(--color-neutral-100);color:var(--color-neutral-900)}
 
         main.app-main{flex:1;min-width:0;display:flex;flex-direction:column}
-        .app-header{position:sticky;top:0;z-index:40;background:#fff;height:67px;border-bottom:1px solid var(--color-neutral-200);
+        .app-header{position:sticky;top:0;z-index:40;background:var(--color-neutral-0);height:67px;border-bottom:1px solid var(--color-neutral-200);
             display:flex;align-items:center;gap:12px;padding:0 18px}
         .app-header-title{min-width:0}
         .app-header-title h1{margin:0;color:var(--color-neutral-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .app-header .breadcrumb{margin:0;flex-wrap:nowrap;overflow:hidden;white-space:nowrap;font-size:12.5px;line-height:18px}
-        .app-header .breadcrumb a{color:var(--color-neutral-400);text-decoration:none}
+        .app-header .breadcrumb a{color:var(--text-muted);text-decoration:none}
         .app-header .breadcrumb a:hover{color:var(--color-neutral-900)}
-        .app-header .breadcrumb-item,.app-header .breadcrumb-item.active{color:var(--color-neutral-400)}
-        .app-date{color:var(--color-neutral-400);white-space:nowrap}
+        .app-header .breadcrumb-item,.app-header .breadcrumb-item.active{color:var(--text-muted)}
+        .app-date{color:var(--text-muted);white-space:nowrap}
         #sbToggle{display:none}
         .page-content{padding:24px 18px;min-width:0}
         .page-content h4.fw-bold{font-weight:600;font-size:23.5px;line-height:30px;letter-spacing:-0.3px;color:var(--color-neutral-900)}
         .page-content h4.fw-bold + p,.page-content h4.fw-bold + .text-muted{color:var(--color-neutral-600)!important;font-size:14px}
 
         .item-row{background:var(--color-neutral-50);border:1px solid var(--color-neutral-200);border-radius:10px;padding:1rem;margin-bottom:.75rem;position:relative}
-        .output-row{background:#fff;border:1px solid var(--color-neutral-200);border-radius:10px;padding:.85rem;margin-bottom:.5rem;position:relative}
+        .output-row{background:var(--color-neutral-0);border:1px solid var(--color-neutral-200);border-radius:10px;padding:.85rem;margin-bottom:.5rem;position:relative}
         .color-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
         .btn-check:checked+.product-btn{box-shadow:0 0 0 2px currentColor inset!important;font-weight:600}
         .product-btn{opacity:.85;cursor:pointer}
@@ -110,6 +111,11 @@
             .sb-overlay.show{display:block;position:fixed;inset:0;background:rgba(13,15,20,.4);z-index:45}
             #sbToggle{display:inline-flex}
             .app-date{display:none}
+            .app-header{height:auto;min-height:67px;padding-top:12px;padding-bottom:12px}
+            .app-header-title h1{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+            .app-header .breadcrumb{flex-wrap:wrap;overflow:visible;white-space:normal;overflow-wrap:anywhere}
+            .app-header .breadcrumb-item:not(:first-child):not(:last-child){display:none}
+            .app-header .breadcrumb-item:last-child{min-width:0;max-width:100%}
         }
     </style>
     @stack('styles')
@@ -155,7 +161,7 @@
 <aside id="sidebar" class="sidebar-collapsed" aria-label="Navigasi utama">
     <div class="sb-top">
         <a href="{{ route('dashboard') }}" class="sb-brand" aria-label="FishPro, ke Dashboard">
-            <span class="sb-logo"><x-icon name="fish" size="22" /></span>
+            <span class="sb-logo"><x-fish-mark size="24" /></span>
             <span class="sb-brand-text">
                 <span class="d-block text-heading-brand sb-brand-name">FishPro</span>
                 <span class="d-block text-body-regular sb-brand-sub">Fish Processing</span>
@@ -245,6 +251,7 @@
         </div>
         <div class="flex-grow-1"></div>
         <span class="text-body-regular app-date">{{ now()->translatedFormat('d M Y') }}</span>
+        @include('layouts._theme_toggle')
         <a href="{{ route('dashboard') }}" class="icon-btn" aria-label="Notifikasi" title="Notifikasi"><x-icon name="bell" size="18" /></a>
     </header>
 

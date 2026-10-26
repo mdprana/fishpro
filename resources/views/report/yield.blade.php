@@ -29,9 +29,9 @@
     $rec = $summary['recovery_pct'];
     $recColor = $rec >= 45 ? 'success' : ($rec >= 30 ? 'warning' : 'danger');
     $recBg = match ($recColor) {
-        'success' => '#E2F4E6',
-        'warning' => '#FBF0DA',
-        default   => '#FDE8E5',
+        'success' => 'var(--green-50)',
+        'warning' => 'var(--amber-50)',
+        default   => 'var(--red-50)',
     };
 @endphp
 <div class="row g-2 mb-3">
