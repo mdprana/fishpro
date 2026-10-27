@@ -371,4 +371,156 @@ class TraceabilityTest extends TestCase
         // Dan dari batch induk NJY, box-nya juga terlacak lewat kolom denormalisasi.
         $this->assertSame(10, PackingBox::whereHas('sources', fn ($q) => $q->where('root_batch_id', $a->id))->count());
     }
+
+    private function batchDanBox(): array
+    {
+        $a   = $this->terima(600, $this->njy, 8);
+        $b   = $this->terima(400, $this->ocf, 7);
+        $lot = $this->rantaiPenuh([$a, $b]);
+
+        $box = app(PackingService::class)->bulkGenerate(
+            $this->po, $this->steak,
+            [['batch_id' => $lot->id, 'kg' => 10]],
+            2, 5,
+            ['packing_date' => today()->toDateString()]
+        )['boxes']->first();
+
+        return [$a, $box];
+    }
+
+    public function test_qr_resolver_menerima_token_nomor_batch_bergaris_miring_kode_box_dan_url_sendiri(): void
+    {
+        [$batch, $box] = $this->batchDanBox();
+        $batch->update(['batch_number' => 'RM-1/P03']);
+        $origin = rtrim(config('app.url'), '/');
+
+        $kasus = [
+            $batch->qr_code                          => route('trace.batch', $batch->qr_code),
+            'RM-1/P03'                               => route('trace.batch', $batch->qr_code),
+            "  RM-1/P03\t"                           => route('trace.batch', $batch->qr_code),
+            $box->box_code                           => route('trace.box', $box->qr_code),
+            $box->qr_code                            => route('trace.box', $box->qr_code),
+            "{$origin}/trace/batch/{$batch->qr_code}" => route('trace.batch', $batch->qr_code),
+            "{$origin}/trace/box/{$box->qr_code}"     => route('trace.box', $box->qr_code),
+            $batch->qr_url                           => route('trace.batch', $batch->qr_code),
+            $box->qr_url                             => route('trace.box', $box->qr_code),
+        ];
+
+        foreach ($kasus as $code => $tujuan) {
+            $this->from(route('trace.index'))->post(route('trace.resolve'), ['code' => $code])
+                ->assertRedirect($tujuan);
+        }
+
+        $this->postJson(route('trace.resolve'), ['code' => 'RM-1/P03'])
+            ->assertOk()->assertJson(['type' => 'batch', 'qr_code' => $batch->qr_code]);
+    }
+
+    public function test_qr_resolver_menolak_url_asing_dan_input_berbahaya_tanpa_menulis_data(): void
+    {
+        [$batch] = $this->batchDanBox();
+        $t      = $batch->qr_code;
+        $origin = rtrim(config('app.url'), '/');
+        $host   = parse_url($origin, PHP_URL_HOST);
+        $scheme = parse_url($origin, PHP_URL_SCHEME);
+        $port   = parse_url($origin, PHP_URL_PORT);
+        $tables = ['production_batches', 'packing_boxes', 'batch_movements', 'audit_events', 'document_counters'];
+        $before = collect($tables)->mapWithKeys(fn ($table) => [$table => \DB::table($table)->get()->toJson()])->all();
+
+        $tolak = [
+            "https://evil.example/trace/batch/{$t}",
+            "http://evil.example/trace/batch/{$t}",
+            "//{$host}/trace/batch/{$t}",
+            "//evil.example/trace/batch/{$t}",
+            "{$scheme}://user:pass@{$host}".($port ? ":{$port}" : '')."/trace/batch/{$t}",
+            "{$scheme}://{$host}:1/trace/batch/{$t}",
+            "{$origin}.evil.example/trace/batch/{$t}",
+            "{$origin}/x/trace/batch/{$t}",
+            "{$origin}/trace/batches/{$t}",
+            "{$origin}/trace/batch/{$t}?a=1",
+            "{$origin}/trace/batch/{$t}?",
+            "{$origin}/trace/batch/{$t}#",
+            "{$origin}/trace/box/{$t}",
+            "{$origin}/trace/batch/{$t}#x",
+            "{$origin}/trace/batch/{$t}/",
+            "{$origin}/trace/batch%2F{$t}",
+            "{$origin}/trace%2Fbatch/{$t}",
+            "{$origin}/trace/batch/%{$t}",
+            "{$origin}/trace/batch/%E0%A4%A",
+            "{$origin}/trace/batch/%".bin2hex($t[0]).substr($t, 1),
+            "{$origin}/trace/batch/{$t}%2f",
+            "{$origin}/trace/batch/{$t}%5c",
+            "{$origin}\\trace\\batch\\{$t}",
+            "javascript:alert(1)//{$t}",
+            "JaVaScRiPt:location='/trace/batch/{$t}'",
+            "data:text/html,{$t}",
+            "ftp://{$host}/trace/batch/{$t}",
+            str_repeat('A', 513),
+            "RM\n{$t}",
+            "RM\x001",
+            "\xff\xfe",
+        ];
+
+        foreach ($tolak as $code) {
+            $res = $this->from(route('trace.index'))->post(route('trace.resolve'), ['code' => $code]);
+            $res->assertRedirect(route('trace.index'));
+            $res->assertSessionHasErrors('code');
+            $this->postJson(route('trace.resolve'), ['code' => $code])->assertStatus(422);
+        }
+
+        foreach ([['code' => [$t]], ['code' => array_fill(0, 513, $t)], ['code' => ['a' => $t]], ['code' => 123], []] as $body) {
+            $this->from(route('trace.index'))->post(route('trace.resolve'), $body)
+                ->assertRedirect(route('trace.index'))->assertSessionHasErrors('code');
+        }
+
+        $this->assertSame($before, collect($tables)->mapWithKeys(fn ($table) => [$table => \DB::table($table)->get()->toJson()])->all());
+    }
+
+    public function test_qr_origin_tidak_mengikuti_host_atau_forwarded_host(): void
+    {
+        $batch = $this->terima(10, $this->njy, 1);
+        config(['app.url' => 'https://fishpro.example']);
+        $this->withHeaders(['Host' => 'evil.example', 'X-Forwarded-Host' => 'evil.example'])
+            ->postJson('/trace/resolve', ['code' => "https://evil.example/trace/batch/{$batch->qr_code}"])
+            ->assertStatus(422);
+        $this->postJson('/trace/resolve', ['code' => "https://fishpro.example/trace/batch/{$batch->qr_code}"])
+            ->assertOk()->assertJson(['url' => "https://fishpro.example/trace/batch/{$batch->qr_code}"]);
+    }
+
+    public function test_qr_kode_tidak_dikenal_ditampilkan_ter_escape(): void
+    {
+        $this->from(route('trace.index'))
+            ->post(route('trace.resolve'), ['code' => '<script>alert(1)</script>'])
+            ->assertRedirect(route('trace.index'));
+
+        $this->get(route('trace.index'))
+            ->assertOk()
+            ->assertDontSee('<script>alert(1)</script>', false)
+            ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false)
+            ->assertSee('role="status"', false)
+            ->assertSee('for="manualCode"', false);
+    }
+
+    public function test_scan_tahap_nomor_batch_bergaris_miring_tetap_persis(): void
+    {
+        $a = $this->terima(600, $this->njy, 8);
+        $b = $this->terima(400, $this->ocf, 7);
+        $a->update(['batch_number' => 'RM-1/P03']);
+        $b->update(['batch_number' => 'RM-1/P031']);
+
+        $this->get(route('stage.create', $this->cutting->code))
+            ->assertOk()->assertSee('manualCode', false)->assertSee('const RESOLVE_URL', false);
+
+        $token = $this->postJson(route('trace.resolve'), ['code' => 'RM-1/P03'])
+            ->assertOk()->assertJson(['type' => 'batch'])->json('qr_code');
+        $this->assertSame($a->qr_code, $token);
+        $this->getJson(route('api.batch.lookup', $token))
+            ->assertOk()->assertJson(['id' => $a->id, 'batch_number' => 'RM-1/P03']);
+
+        $this->postJson(route('trace.resolve'), ['code' => $a->qr_url])->assertOk()->assertJson(['qr_code' => $a->qr_code]);
+        $this->postJson(route('trace.resolve'), ['code' => "https://evil.example/trace/batch/{$a->qr_code}"])->assertStatus(422);
+
+        $this->getJson(route('api.batch.lookup', $b->qr_code))->assertOk()->assertJson(['id' => $b->id]);
+        $this->getJson(route('api.batch.lookup', substr($a->qr_code, 0, 7)))->assertNotFound();
+        $this->getJson(route('api.batch.lookup', 'RM-1'))->assertNotFound();
+    }
 }

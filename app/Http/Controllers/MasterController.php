@@ -13,9 +13,15 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use App\Services\AuditService;
 
 class MasterController extends Controller
 {
+    public function __construct(private readonly AuditService $audit)
+    {
+    }
+
     // ════════════════════════════════════════════════════════
     // GROUP BAHAN BAKU
     // ════════════════════════════════════════════════════════
@@ -66,9 +72,20 @@ class MasterController extends Controller
         $data = $request->validate([
             'material_group_id' => 'required|exists:material_groups,id',
             'name'              => 'required|string|max:150',
-        ]);
-        $sub = MaterialSubgroup::create($data);
-        RawMaterialStock::create(['material_subgroup_id' => $sub->id, 'current_stock_kg' => 0]);
+        ] + $this->minimumRule($request));
+
+        $sub = DB::transaction(function () use ($request, $data) {
+            $sub = MaterialSubgroup::create($data);
+            RawMaterialStock::create(['material_subgroup_id' => $sub->id, 'current_stock_kg' => 0]);
+
+            if ($request->filled('minimum_stock_kg')) {
+                $sub->forceFill(['minimum_stock_kg' => $data['minimum_stock_kg']])->save();
+                $this->audit->record('stock.minimum_changed', $sub, null, $this->audit->snapshot($sub->fresh()));
+            }
+
+            return $sub;
+        });
+
         return back()->with('success', "Subgroup {$sub->name} ditambahkan.");
     }
 
@@ -77,9 +94,35 @@ class MasterController extends Controller
         $data = $request->validate([
             'name'      => 'required|string|max:150',
             'is_active' => 'boolean',
-        ]);
-        $subgroup->update($data);
+        ] + $this->minimumRule($request));
+
+        DB::transaction(function () use ($request, $data, $subgroup) {
+            $locked = MaterialSubgroup::whereKey($subgroup->id)->lockForUpdate()->firstOrFail();
+            $before = $this->audit->snapshot($locked);
+
+            $locked->update(collect($data)->only(['name', 'is_active'])->all());
+
+            // Field tidak dikirim = nilai lama dipertahankan; dikirim kosong = dihapus.
+            if ($request->exists('minimum_stock_kg')) {
+                $locked->forceFill(['minimum_stock_kg' => $data['minimum_stock_kg']])->save();
+                $this->audit->record('stock.minimum_changed', $locked, $before, $this->audit->snapshot($locked->fresh()));
+            }
+        });
+
         return back()->with('success', "Subgroup {$subgroup->name} diperbarui.");
+    }
+
+    /** Aturan minimum stok; mengirim field ini butuh gate manage-operations. */
+    private function minimumRule(Request $request): array
+    {
+        if (! $request->exists('minimum_stock_kg')) {
+            return [];
+        }
+
+        Gate::authorize('manage-operations');
+
+        // Maks DECIMAL(12,2): 10 digit bulat, 2 desimal; menolak negatif, NaN, INF, eksponen.
+        return ['minimum_stock_kg' => ['nullable', 'string', 'regex:/^\d{1,10}(\.\d{1,2})?$/']];
     }
 
     public function destroySubgroup(MaterialSubgroup $subgroup): RedirectResponse

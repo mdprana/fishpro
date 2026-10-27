@@ -182,6 +182,9 @@ class ProductionBatch extends Model
 
         $balance = max(0, $balance); // bersihkan galat pembulatan timbangan
 
+        \App\Services\AuditService::requireTransaction();
+        $before = number_format((float) $this->current_weight_kg, 3, '.', '');
+
         $movement = $this->movements()->create([
             'movement_type'         => $type,
             'direction'             => $direction,
@@ -199,6 +202,16 @@ class ProductionBatch extends Model
         $this->current_weight_kg = $balance;
         $this->status            = $this->resolveStatus($balance);
         $this->save();
+
+        app(\App\Services\AuditService::class)->record('stock.movement', $this, ['current_weight_kg' => $before], [
+            'current_weight_kg'     => number_format($balance, 3, '.', ''),
+            'movement_type'         => $type,
+            'direction'             => $direction,
+            'weight_kg'             => number_format($weightKg, 3, '.', ''),
+            'receiving_id'          => $movement->receiving_id,
+            'batch_stage_record_id' => $movement->batch_stage_record_id,
+            'packing_box_id'        => $movement->packing_box_id,
+        ], $movement->id);
 
         return $movement;
     }

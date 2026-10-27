@@ -30,8 +30,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/',               [ReceivingController::class,'index'])->name('index');
         Route::get('/create',         [ReceivingController::class,'create'])->name('create');
         Route::post('/',              [ReceivingController::class,'store'])->name('store');
+        Route::get('/import-csv/template', [ReceivingController::class,'csvTemplate'])->middleware('can:manage-operations')->name('import.template');
+        Route::post('/import-csv', [ReceivingController::class,'importCsv'])->middleware('can:manage-operations')->name('import');
+        Route::post('/import-csv/commit', [ReceivingController::class,'commitCsv'])->middleware('can:manage-operations')->name('import.commit');
         Route::delete('/{receiving}', [ReceivingController::class,'destroy'])->name('destroy');
-        Route::post('/import-csv',    [ReceivingController::class,'importCsv'])->name('import');
     });
 
     // Modul 3: Ringkasan & analisa produksi.

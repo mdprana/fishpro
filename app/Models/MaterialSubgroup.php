@@ -10,7 +10,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class MaterialSubgroup extends Model
 {
     protected $fillable = ['material_group_id','name','code','is_active'];
-    protected $casts    = ['is_active' => 'boolean'];
+    // minimum_stock_kg sengaja tidak fillable: hanya diubah lewat MasterController (gate + audit).
+    protected $casts    = ['is_active' => 'boolean', 'minimum_stock_kg' => 'decimal:2'];
+
+    /** Subgroup aktif di group aktif, stok di-eager-load; tanpa membuat baris stok. */
+    public function scopeForStockView($query)
+    {
+        return $query->active()
+            ->whereHas('group', fn ($g) => $g->active())
+            ->with(['stock', 'group'])
+            ->orderBy('material_group_id')->orderBy('name');
+    }
+
+    /** null = minimum belum diatur; true = stok <= minimum. */
+    public function getMinimumReachedAttribute(): ?bool
+    {
+        if ($this->minimum_stock_kg === null) {
+            return null;
+        }
+
+        return round($this->current_stock, 2) <= round((float) $this->minimum_stock_kg, 2);
+    }
 
     public function group(): BelongsTo
     {

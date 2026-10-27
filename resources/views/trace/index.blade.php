@@ -14,7 +14,7 @@
     </div>
 
     @error('code')
-    <div class="alert alert-danger py-2 px-3 small">{{ $message }}</div>
+    <div class="alert alert-danger py-2 px-3 small" role="alert">{{ $message }}</div>
     @enderror
 
     @include('partials._scanner', [
@@ -44,24 +44,32 @@ const RECENT_KEY = 'fishpro.trace.recent';
 window.onScanCode = function (code) {
     window.scanFeedback('Mencari ' + code + '…', 'muted');
     remember(code);
+    if (window.scannerStop) window.scannerStop();
     document.getElementById('resolveCode').value = code;
     document.getElementById('resolveForm').submit();
 };
 
-// Riwayat scan hanya kenyamanan per-perangkat, jadi cukup di localStorage.
-// Dibungkus try/catch karena mode privat / site data diblokir bisa melempar.
+function loadRecent() {
+    try {
+        const raw = localStorage.getItem(RECENT_KEY) || '[]';
+        if (raw.length > 32768) return [];
+        const list = JSON.parse(raw);
+        if (!Array.isArray(list) || list.length > 8
+            || !list.every(c => typeof c === 'string' && c.length > 0 && c.length <= 512 && !/[\x00-\x1f\x7f]/.test(c))) return [];
+        return list;
+    } catch (e) { return []; }
+}
+
 function remember(code) {
     try {
-        const list = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')
-            .filter(c => c !== code);
+        const list = loadRecent().filter(c => c !== code);
         list.unshift(code);
         localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 8)));
     } catch (e) { /* riwayat bukan data penting, abaikan saja */ }
 }
 
 function renderRecent() {
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch (e) { return; }
+    const list = loadRecent();
     if (!list.length) return;
 
     const wrap = document.getElementById('recentList');

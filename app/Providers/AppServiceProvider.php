@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Models\PackingBox;
 use App\Models\PoItem;
 use App\Models\PurchaseOrder;
+use App\Models\User;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        Gate::define('manage-operations', fn (User $user) => $user->can_manage_operations === true);
+        Gate::define('view-audit', fn (User $user) => $user->can_view_audit === true);
 
         // Data ringan untuk sidebar: hanya query agregat, tanpa memuat model per baris.
         View::composer('layouts.app', function ($view) {

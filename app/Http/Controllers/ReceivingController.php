@@ -7,7 +7,13 @@ use App\Models\MaterialSubgroup;
 use App\Models\RawMaterialStock;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use App\Services\AuditService;
 use App\Services\BatchService;
+use App\Services\ReceivingCsv;
+use App\Models\ReceivingImport;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
@@ -21,15 +27,17 @@ class ReceivingController extends Controller
         'Styrofoam Box','Plastik Bag','Tray','Ember','Wadah Lainnya',
     ];
 
-    public function __construct(private readonly BatchService $batches)
-    {
+    public function __construct(
+        private readonly BatchService $batches,
+        private readonly AuditService $audit,
+    ) {
     }
 
     public function index(): View
     {
-        $stocks = RawMaterialStock::with('subgroup.group')->get();
+        $subgroups = MaterialSubgroup::forStockView()->get();
 
-        return view('receiving.index', compact('stocks'));
+        return view('receiving.index', compact('subgroups'));
     }
 
 
@@ -77,18 +85,12 @@ class ReceivingController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate(ReceivingCsv::rules() + [
             // PO wajib: permintaan pabrik adalah barang masuk terhubung langsung ke nomor PO.
             'purchase_order_id'    => 'required|exists:purchase_orders,id',
             'material_subgroup_id' => 'required|exists:material_subgroups,id',
             'supplier_id'          => 'required|exists:suppliers,id',
-            'weight_kg'            => 'required|numeric|min:0.01',
-            'container_type'       => 'required|string|max:100',
-            'container_count'      => 'required|integer|min:1',
-            'split_per_container'  => 'nullable|boolean',
-            'doc_number'           => 'nullable|string|max:100',
             'vehicle_number'       => 'nullable|string|max:30',
-            'received_date'        => 'required|date',
             'unload_start'         => 'nullable|date_format:H:i',
             'unload_end'           => 'nullable|date_format:H:i',
             'temperature_c'        => 'nullable|numeric|between:-50,50',
@@ -100,6 +102,7 @@ class ReceivingController extends Controller
 
         $batches = DB::transaction(function () use ($validated) {
             $receiving = Receiving::create($validated);
+            $this->audit->record('receiving.create', $receiving, null, $this->audit->snapshot($receiving->fresh()));
 
             // Batch Number Induk + label QR diterbitkan di sini; stok bahan baku
             // ikut dihitung ulang dari saldo batch, bukan ditambah manual.
@@ -129,8 +132,13 @@ class ReceivingController extends Controller
 
         try {
             DB::transaction(function () use ($receiving) {
-                $this->batches->voidReceivingBatches($receiving, 'Penerimaan dihapus operator');
-                $receiving->delete();
+                $locked = Receiving::whereKey($receiving->id)->lockForUpdate()->firstOrFail();
+                $before = $this->audit->snapshot($locked);
+
+                $this->batches->voidReceivingBatches($locked, 'Penerimaan dihapus operator');
+                $locked->delete();
+
+                $this->audit->record('receiving.void', $locked, $before, $this->audit->snapshot($locked));
             });
         } catch (\RuntimeException $e) {
             return back()->withErrors(['receiving' => $e->getMessage()]);
@@ -156,67 +164,102 @@ class ReceivingController extends Controller
         ]);
     }
 
-    public function importCsv(Request $request): RedirectResponse
+    public function importCsv(Request $request, ReceivingCsv $csv): View
     {
-        $request->validate(['csv_file' => 'required|file|mimes:csv,txt|max:2048']);
-
-        $rows    = array_map('str_getcsv', file($request->file('csv_file')->getPathname()));
-        $headers = array_map('trim', array_shift($rows));
-        $imported = 0; $errors = [];
-
-        foreach ($rows as $i => $row) {
-            if (count($row) < 2) continue;
-            $baris = $i + 2; // +1 header, +1 karena manusia menghitung dari 1
-            $data  = array_combine($headers, array_map('trim', $row));
-
-            $sub = MaterialSubgroup::where('name','like','%'.($data['subgroup']??'').'%')->first();
-            if (!$sub) { $errors[] = "Baris {$baris}: subgroup '".($data['subgroup'] ?? '')."' tidak ditemukan"; continue; }
-
-            $wt = (float)($data['weight_kg']??0);
-            if ($wt <= 0) { $errors[] = "Baris {$baris}: berat tidak valid"; continue; }
-
-            // Kolom CSV `supplier` boleh diisi kode (NJY) maupun nama lengkap.
-            $supplierKey = trim($data['supplier'] ?? '');
-            $supplier    = $supplierKey === '' ? null : Supplier::where('code', Supplier::normalizeCode($supplierKey))
-                ->orWhere('name', $supplierKey)->first();
-
-            if (!$supplier) {
-                $errors[] = "Baris {$baris}: supplier '{$supplierKey}' tidak terdaftar di master";
-                continue;
-            }
-
-            // Tanpa PO, batch tidak bisa dikaitkan ke pesanan mana pun.
-            $po = PurchaseOrder::where('po_number', trim($data['po_number'] ?? ''))->first();
-            if (!$po) {
-                $errors[] = "Baris {$baris}: nomor PO '".($data['po_number'] ?? '')."' tidak ditemukan";
-                continue;
-            }
-
-            try {
-                DB::transaction(function () use ($sub, $wt, $data, $supplier, $po) {
-                    $receiving = Receiving::create([
-                        'material_subgroup_id' => $sub->id,
-                        'purchase_order_id'    => $po->id,
-                        'supplier_id'          => $supplier->id,
-                        'weight_kg'            => $wt,
-                        'container_type'       => $data['container_type'] ?? 'Box Polos',
-                        'container_count'      => (int)($data['container_count'] ?? 1) ?: 1,
-                        'split_per_container'  => filter_var($data['split_per_container'] ?? false, FILTER_VALIDATE_BOOL),
-                        'received_date'        => $data['received_date'] ?? today()->format('Y-m-d'),
-                        'batch_code'           => $data['batch_code'] ?? null,
-                        'doc_number'           => $data['doc_number'] ?? null,
-                        'created_by'           => auth()->id(),
-                    ]);
-
-                    $this->batches->createFromReceiving($receiving);
-                });
-                $imported++;
-            } catch (\Throwable $e) {
-                $errors[] = "Baris {$baris}: {$e->getMessage()}";
-            }
+        Gate::authorize('manage-operations');
+        $request->validate(['csv_file' => 'required|file|extensions:csv,txt|max:1024']);
+        $stream = fopen($request->file('csv_file')->getPathname(), 'rb');
+        try {
+            $bytes = stream_get_contents($stream, ReceivingCsv::MAX_BYTES + 1);
+        } finally {
+            fclose($stream);
         }
+        $preview = $csv->parse($bytes);
+        $envelope = $preview['errors'] ? null : $csv->envelope($bytes, (int) $request->user()->id, $preview);
 
-        return redirect()->route('receiving.index')
-            ->with('success', "{$imported} baris diimport." . ($errors ? ' Error: '.implode(', ',$errors) : ''));
+        return view('receiving.preview', compact('preview', 'envelope'));
+    }
+
+    public function csvTemplate()
+    {
+        Gate::authorize('manage-operations');
+        return response(implode(',', ReceivingCsv::HEADERS)."\nPO-CONTOH,KODE-SUB,KODE-SUP,100.50,Keranjang,2,true,2026-10-27,DOK-001\n", 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="penerimaan-contoh.csv"',
+        ]);
+    }
+
+    public function commitCsv(Request $request, ReceivingCsv $csv): RedirectResponse
+    {
+        Gate::authorize('manage-operations');
+        $envelope = $request->input('envelope');
+        $request->request->remove('envelope');
+        if ((int) $request->server('CONTENT_LENGTH', 0) > ReceivingCsv::MAX_ENVELOPE + 65536) {
+            throw ValidationException::withMessages(['csv_file' => 'Konfirmasi terlalu besar.']);
+        }
+        [$meta, $bytes] = $csv->open($envelope, (int) $request->user()->id);
+        $line = 1;
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+        try {
+            $receipt = DB::transaction(function () use ($csv, $meta, $bytes, &$line) {
+                $existing = ReceivingImport::where('nonce', $meta['nonce'])->first();
+                if ($existing) {
+                    return $this->matchingReceipt($existing, $meta);
+                }
+                $preview = $csv->parse($bytes, true);
+                if ($preview['errors'] || !hash_equals($meta['digest'], $preview['digest']) || !hash_equals($meta['references'], $preview['references'])) {
+                    throw ValidationException::withMessages(['csv_file' => 'Referensi/isi berubah atau tidak valid. Buat pratinjau baru.']);
+                }
+                if (ReceivingImport::where('content_hash', $meta['digest'])->exists()) {
+                    throw ValidationException::withMessages(['csv_file' => 'Isi CSV sudah pernah diimpor.']);
+                }
+                $receipt = ReceivingImport::create(['actor_id' => auth()->id(), 'nonce' => $meta['nonce'],
+                    'content_hash' => $meta['digest'], 'row_count' => count($preview['rows']), 'receiving_ids' => []]);
+                $ids = [];
+                foreach ($preview['rows'] as $row) {
+                    $line = $row['line'];
+                    $receiving = Receiving::create($row['data'] + ['created_by' => auth()->id()]);
+                    $this->audit->record('receiving.create', $receiving, null, $this->audit->snapshot($receiving->fresh()));
+                    $this->batches->createFromReceiving($receiving);
+                    $ids[] = (int) $receiving->id;
+                }
+                DB::table('receiving_imports')->where('id', $receipt->id)->update(['receiving_ids' => json_encode($ids, JSON_THROW_ON_ERROR)]);
+                return $receipt->fresh();
+            }, 3);
+            break;
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            if ($e instanceof QueryException) {
+                if (DB::getDriverName() === 'sqlite' && in_array((int) ($e->errorInfo[1] ?? 0), [5, 6], true) && $attempt < 4) {
+                    usleep(100000 * ($attempt + 1));
+                    continue;
+                }
+                $existing = ReceivingImport::where('nonce', $meta['nonce'])->first();
+                if ($existing) {
+                    $receipt = $this->matchingReceipt($existing, $meta);
+                    return $this->importSuccess($receipt);
+                }
+                if (ReceivingImport::where('content_hash', $meta['digest'])->exists()) {
+                    throw ValidationException::withMessages(['csv_file' => 'Isi CSV sudah pernah diimpor.']);
+                }
+            }
+            throw ValidationException::withMessages(['csv_file' => "Baris {$line}: kolom CSV gagal disimpan. Tidak ada perubahan; coba lagi."]);
+        }
+        }
+        return $this->importSuccess($receipt);
+    }
+
+    private function matchingReceipt(ReceivingImport $receipt, array $meta): ReceivingImport
+    {
+        if ($receipt->actor_id !== (int) auth()->id() || !hash_equals($receipt->content_hash, $meta['digest'])) {
+            throw ValidationException::withMessages(['csv_file' => 'Isi CSV sudah pernah diimpor.']);
+        }
+        return $receipt;
+    }
+
+    private function importSuccess(ReceivingImport $receipt): RedirectResponse
+    {
+        return redirect()->route('receiving.index')->with('success', "{$receipt->row_count} baris berhasil diimpor. Konfirmasi ulang tidak menambah penerimaan.");
     }
 }

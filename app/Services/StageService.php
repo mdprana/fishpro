@@ -26,6 +26,7 @@ class StageService
     public function __construct(
         private readonly CodeGenerator $codes,
         private readonly StockService $stock,
+        private readonly AuditService $audit,
     ) {
     }
 
@@ -83,6 +84,8 @@ class StageService
 
             $this->refreshTotals($record, $totalInput, $totalOutput, $totalWaste, $outputsData);
             $this->refreshRawStock($inputs);
+
+            $this->audit->record('stage.create', $record, null, $this->audit->snapshot($record->fresh()));
 
             return [
                 'record'  => $record->fresh(['outputs', 'inputs']),
@@ -392,6 +395,9 @@ class StageService
     public function void(BatchStageRecord $record, string $reason): void
     {
         DB::transaction(function () use ($record, $reason) {
+            $record = BatchStageRecord::whereKey($record->id)->lockForUpdate()->firstOrFail();
+            $before = $this->audit->snapshot($record);
+
             if ($record->is_voided) {
                 throw new \RuntimeException('Sesi ini sudah dibatalkan sebelumnya.');
             }
@@ -446,6 +452,8 @@ class StageService
             $this->refreshRawStock(
                 $record->inputs->map(fn ($i) => ['batch' => $i->batch, 'kg' => (float) $i->input_weight_kg])
             );
+
+            $this->audit->record('stage.void', $record, $before, $this->audit->snapshot($record->fresh()));
         });
     }
 }

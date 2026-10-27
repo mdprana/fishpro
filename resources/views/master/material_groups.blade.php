@@ -55,7 +55,9 @@
                     <div>
                         <div class="fw-semibold dyn-text" style="--c:{{ $group->color }}">{{ $sub->name }}</div>
                         <div class="small text-muted">
-                            Stok: <strong class="text-{{ $stock<10?'danger':($stock<50?'warning':'success') }}">{{ number_format($stock,1) }} kg</strong>
+                            Stok: <strong class="{{ $sub->minimum_reached ? 'text-warning' : 'text-dark' }}">{{ number_format($stock,1) }} kg</strong>
+                            · Minimum: {{ $sub->minimum_stock_kg === null ? 'Belum diatur' : number_format((float) $sub->minimum_stock_kg, 2).' kg' }}
+                            @if($sub->minimum_reached)<span class="badge bg-warning ms-1" style="font-size:.65rem">Stok minimum tercapai</span>@endif
                             @if(!$sub->is_active)<span class="badge bg-secondary ms-1" style="font-size:.65rem">Nonaktif</span>@endif
                         </div>
                     </div>
@@ -65,7 +67,7 @@
                             <i class="bi bi-percent"></i> Yield
                         </button>
                         <button class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size:.72rem"
-                                onclick="openEditSub({{ $sub->id }},'{{ addslashes($sub->name) }}',{{ $sub->is_active?1:0 }})">
+                                onclick="openEditSub({{ $sub->id }},'{{ addslashes($sub->name) }}',{{ $sub->is_active?1:0 }},'{{ $sub->minimum_stock_kg ?? '' }}')">
                             <i class="bi bi-pencil"></i>
                         </button>
                     </div>
@@ -259,6 +261,12 @@
                     <label class="form-label">Nama Subgroup <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control"
                            placeholder="Ayam Boiler, Ayam Kampung, YF LOIN EROPA WARNA…" required>
+                    @can('manage-operations')
+                    <label class="form-label mt-3" for="asMin">Stok minimum (kg)</label>
+                    <input type="text" inputmode="decimal" name="minimum_stock_kg" id="asMin" class="form-control"
+                           pattern="\d{1,10}(\.\d{1,2})?" placeholder="Kosongkan = belum diatur" aria-describedby="asMinHelp">
+                    <div id="asMinHelp" class="form-text">Maks 2 desimal. 0 tetap dihitung sebagai minimum.</div>
+                    @endcan
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
@@ -286,6 +294,12 @@
                         <input class="form-check-input" type="checkbox" name="is_active" id="esActive" value="1">
                         <label class="form-check-label" for="esActive">Aktif</label>
                     </div>
+                    @can('manage-operations')
+                    <label class="form-label mt-3" for="esMin">Stok minimum (kg)</label>
+                    <input type="text" inputmode="decimal" name="minimum_stock_kg" id="esMin" class="form-control"
+                           pattern="\d{1,10}(\.\d{1,2})?" placeholder="Kosongkan = belum diatur" aria-describedby="esMinHelp">
+                    <div id="esMinHelp" class="form-text">Maks 2 desimal. 0 tetap dihitung sebagai minimum.</div>
+                    @endcan
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
@@ -364,10 +378,12 @@ function openAddSubgroup(groupId, groupName) {
     new bootstrap.Modal(document.getElementById('addSubModal')).show();
 }
 
-function openEditSub(id, name, active) {
+function openEditSub(id, name, active, minimum) {
     document.getElementById('editSubForm').action = `/master/subgroups/${id}`;
     document.getElementById('esName').value = name;
     document.getElementById('esActive').checked = active === 1;
+    const min = document.getElementById('esMin');
+    if (min) min.value = minimum;
     new bootstrap.Modal(document.getElementById('editSubModal')).show();
 }
 </script>

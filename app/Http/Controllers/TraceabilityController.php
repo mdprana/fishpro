@@ -20,34 +20,56 @@ class TraceabilityController extends Controller
      * Terima kode apa pun yang diketik atau di-scan operator: token QR, nomor
      * batch, atau kode box. Lalu arahkan ke halaman telusur yang tepat.
      */
-    public function resolve(Request $request): RedirectResponse
+    public function resolve(Request $request): RedirectResponse|JsonResponse
     {
-        $code = trim((string) $request->input('code'));
+        $raw  = $request->input('code');
+        $code = is_string($raw) ? trim($raw) : null;
 
         if ($code === '') {
-            return back()->withErrors(['code' => 'Masukkan atau scan kode terlebih dahulu.']);
+            return $this->resolveError($request, 'Masukkan atau scan kode terlebih dahulu.');
+        }
+        if ($code === null || !mb_check_encoding($code, 'UTF-8') || mb_strlen($code) > 512
+            || preg_match('/[\x00-\x1F\x7F]/', $code)) {
+            return $this->resolveError($request, 'Kode tidak valid.');
         }
 
-        // Nomor batch sendiri memuat garis miring (…-001/P03), jadi pemotongan
-        // URL hanya boleh dilakukan bila kode memang sebuah alamat lengkap
-        // hasil scan kamera HP.
-        if (preg_match('#^https?://#i', $code)) {
-            $code = trim(substr($code, strrpos($code, '/') + 1));
+        $box = $batch = null;
+
+        if (preg_match('#^[a-z][a-z0-9+.\-]*:|^[/\\\\]{2}#i', $code)) {
+            $origin = rtrim((string) config('app.url'), '/');
+            if (!preg_match('#^(.*?)/trace/(batch|box)/([0-9A-HJKMNP-TV-Z]{8})$#', $code, $m)
+                || strcasecmp($m[1], $origin) !== 0) {
+                return $this->resolveError($request, 'Alamat QR bukan dari aplikasi ini atau formatnya tidak dikenal.');
+            }
+            $m[2] === 'box'
+                ? $box   = PackingBox::where('qr_code', $m[3])->first()
+                : $batch = ProductionBatch::where('qr_code', $m[3])->first();
+        } else {
+            // Nomor batch sendiri memuat garis miring (…-001/P03): cocokkan persis.
+            $box = PackingBox::where('qr_code', $code)->orWhere('box_code', $code)->first();
+            $batch = $box ? null : ProductionBatch::where('qr_code', $code)->orWhere('batch_number', $code)->first();
         }
 
-        $box = PackingBox::where('qr_code', $code)->orWhere('box_code', $code)->first();
-        if ($box) {
-            return redirect()->route('trace.box', $box->qr_code);
+        if ($box || $batch) {
+            $type = $box ? 'box' : 'batch';
+            $qr   = ($box ?? $batch)->qr_code;
+            $url  = rtrim((string) config('app.url'), '/').route("trace.{$type}", $qr, false);
+
+            return $request->expectsJson()
+                ? response()->json(['type' => $type, 'qr_code' => $qr, 'url' => $url])
+                : redirect($url);
         }
 
-        $batch = ProductionBatch::where('qr_code', $code)->orWhere('batch_number', $code)->first();
-        if ($batch) {
-            return redirect()->route('trace.batch', $batch->qr_code);
+        return $this->resolveError($request, "Kode \"{$code}\" tidak ditemukan sebagai batch maupun box.", $code);
+    }
+
+    private function resolveError(Request $request, string $message, ?string $code = null): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, 'errors' => ['code' => [$message]]], 422);
         }
 
-        return back()->withInput()->withErrors([
-            'code' => "Kode \"{$code}\" tidak ditemukan sebagai batch maupun box.",
-        ]);
+        return back()->withInput($code === null ? [] : ['code' => $code])->withErrors(['code' => $message]);
     }
 
     /**

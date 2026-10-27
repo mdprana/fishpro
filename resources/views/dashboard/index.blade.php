@@ -230,10 +230,12 @@
                         </div>
                         @if($alert['po_id'])
                         <a href="{{ route('po.show',$alert['po_id']) }}" class="btn btn-sm btn-outline-secondary">detail</a>
+                        @elseif($alert['category']==='stok')
+                        <a href="{{ route('receiving.index') }}" class="btn btn-sm btn-outline-secondary">detail</a>
                         @endif
                     </div>
                     <div class="text-muted" style="font-size:.74rem">
-                        <i class="bi {{ $alert['category']==='proses' ? 'bi-gear' : ($alert['category']==='packing' ? 'bi-box-seam' : 'bi-shop') }} me-1"></i>
+                        <i class="bi {{ ['proses' => 'bi-gear', 'packing' => 'bi-box-seam', 'deadline' => 'bi-calendar-x'][$alert['category']] ?? 'bi-shop' }} me-1"></i>
                         {{ $alert['message'] }}
                     </div>
                     <div class="progress mt-1" style="height:4px">
@@ -268,14 +270,24 @@
                         <div class="row g-1 mt-1">
                             @foreach($items as $s)
                             <div class="col-6">
-                                <div class="p-2 rounded-2 bg-light d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-1 min-w-0">
-                                        <span class="color-dot flex-shrink-0" style="background:{{ $s['color'] }}"></span>
-                                        <span class="text-truncate fw-semibold" style="font-size:.76rem">{{ $s['subgroup'] }}</span>
+                                <div class="p-2 rounded-2 {{ $s['minimum_reached'] ? 'bg-warning-subtle' : 'bg-light' }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-1 min-w-0">
+                                            <span class="color-dot flex-shrink-0" style="background:{{ $s['color'] }}"></span>
+                                            <span class="text-truncate fw-semibold" style="font-size:.76rem">{{ $s['subgroup'] }}</span>
+                                        </div>
+                                        <span class="fw-bold flex-shrink-0 ms-1 text-dark" style="font-size:.82rem">
+                                            {{ number_format($s['current_stock_kg'],1) }}<span class="text-muted fw-normal" style="font-size:.65rem"> kg</span>
+                                        </span>
                                     </div>
-                                    <span class="fw-bold flex-shrink-0 ms-1 text-{{ $s['alert'] }}" style="font-size:.82rem">
-                                        {{ number_format($s['current_stock_kg'],1) }}<span class="text-muted fw-normal" style="font-size:.65rem"> kg</span>
-                                    </span>
+                                    <div class="{{ $s['minimum_reached'] ? 'text-warning fw-semibold' : 'text-muted' }}" style="font-size:.68rem">
+                                        @if($s['minimum_stock_kg'] === null)
+                                            Minimum: Belum diatur
+                                        @else
+                                            Minimum: {{ number_format($s['minimum_stock_kg'],2) }} kg
+                                            @if($s['minimum_reached']) · Stok minimum tercapai @endif
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                             @endforeach

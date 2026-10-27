@@ -81,7 +81,8 @@ class PoDaysLeftTest extends TestCase
             $this->assertSame($days, $row['days_left']);
             $this->assertSame($days < 0, $row['is_overdue']);
             $alerts = collect($service->getSummary()['alerts'])->where('po_id', $po->id);
-            $this->assertCount(2, $alerts);
+            $this->assertCount($days <= 0 ? 3 : 2, $alerts);
+            $this->assertCount($days <= 0 ? 1 : 0, $alerts->where('category', 'deadline'));
             foreach ($alerts as $alert) {
                 $this->assertSame($days, $alert['days_left']);
             }

@@ -256,6 +256,9 @@
     </header>
 
     <div class="page-content">
+        @if(config('database.default') === 'sqlite' && str_starts_with((string) config('database.connections.sqlite.database'), '/tmp/'))
+        <div class="alert alert-warning mb-3" role="status">Data demo dapat direset; bukan arsip audit permanen</div>
+        @endif
         @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
             {{ session('success') }}

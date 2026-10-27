@@ -2,8 +2,7 @@
 namespace App\Services;
 
 use App\Models\PurchaseOrder;
-use App\Models\RawMaterialStock;
-use App\Models\MaterialGroup;
+use App\Models\MaterialSubgroup;
 use App\Models\BatchStageOutput;
 use App\Models\BatchStageRecord;
 use App\Models\PoSurplus;
@@ -68,17 +67,39 @@ class DashboardService
             }
         }
 
-        // Stok bahan baku rendah
-        $lowStocks = RawMaterialStock::with('subgroup.group')->where('current_stock_kg','<',10)->get();
-        foreach ($lowStocks as $s) {
+        // Deadline PO: hanya hari ini dan terlambat, satu alert per PO (termasuk PO tanpa item).
+        foreach ($activePOs as $po) {
+            $daysLeft = $po->days_remaining_raw;
+            if ($daysLeft > 0) {
+                continue;
+            }
+            $alerts[] = [
+                'type'       => $daysLeft < 0 ? 'danger' : 'warning',
+                'po_id'      => $po->id,
+                'po_number'  => $po->po_number,
+                'product'    => 'Deadline PO',
+                'color'      => '#6b7280',
+                'category'   => 'deadline',
+                'message'    => $daysLeft === 0 ? 'Jatuh tempo hari ini' : 'Terlambat '.abs($daysLeft).' hari',
+                'done_pct'   => 0,
+                'kurang_pct' => 100,
+                'days_left'  => $daysLeft,
+            ];
+        }
+
+        // Stok minimum: hanya subgroup yang minimumnya diatur dan stok <= minimum.
+        foreach (MaterialSubgroup::forStockView()->get() as $s) {
+            if (! $s->minimum_reached) {
+                continue;
+            }
             $alerts[] = [
                 'type'       => 'warning',
                 'po_id'      => null,
                 'po_number'  => 'STOK',
-                'product'    => $s->subgroup->name,
-                'color'      => $s->subgroup->group->color ?? '#6b7280',
+                'product'    => $s->name,
+                'color'      => $s->group->color ?? '#6b7280',
                 'category'   => 'stok',
-                'message'    => "Stok {$s->subgroup->name} hampir habis: {$s->current_stock_kg} kg",
+                'message'    => 'Stok minimum tercapai: '.number_format($s->current_stock, 2).' kg / minimum '.number_format((float) $s->minimum_stock_kg, 2).' kg',
                 'done_pct'   => 0,
                 'kurang_pct' => 100,
                 'days_left'  => 99,
@@ -139,19 +160,14 @@ class DashboardService
 
     public function getStockSummary(): array
     {
-        return MaterialGroup::active()
-            ->with(['subgroups' => fn($q) => $q->active()->with('stock')])
-            ->get()
-            ->flatMap(function ($g) {
-                return $g->subgroups->map(fn($s) => [
-                    'group'           => $g->name,
-                    'subgroup'        => $s->name,
-                    'color'           => $g->color,
-                    'current_stock_kg'=> (float)($s->stock?->current_stock_kg ?? 0),
-                    'alert'           => ($s->stock?->current_stock_kg ?? 0) < 10 ? 'danger'
-                        : (($s->stock?->current_stock_kg ?? 0) < 50 ? 'warning' : 'success'),
-                ]);
-            })->toArray();
+        return MaterialSubgroup::forStockView()->get()->map(fn ($s) => [
+            'group'            => $s->group->name,
+            'subgroup'         => $s->name,
+            'color'            => $s->group->color,
+            'current_stock_kg' => $s->current_stock,
+            'minimum_stock_kg' => $s->minimum_stock_kg === null ? null : (float) $s->minimum_stock_kg,
+            'minimum_reached'  => $s->minimum_reached,
+        ])->toArray();
     }
 
     public function getPOTable(): array

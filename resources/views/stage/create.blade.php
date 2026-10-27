@@ -297,6 +297,7 @@ const REQUIRES_PRODUCT = @json((bool) $stage->requires_product_type);
 const STANDARDS       = @json($standards);
 const INPUTS_URL      = @json(route('api.stage.inputs', $stage->code));
 const LOOKUP_URL      = @json(url('api/batch/lookup'));
+const RESOLVE_URL     = @json(route('trace.resolve'));
 
 const state = { inputs: new Map() };
 
@@ -384,7 +385,24 @@ function validateInput(row, batch) {
 
 window.onScanCode = async function (code) {
     try {
-        const res = await fetch(`${LOOKUP_URL}/${encodeURIComponent(code)}`, { headers: { 'Accept': 'application/json' } });
+        let token = code;
+        if (code.includes('/') || code.includes(':') || code.includes('\\')) {
+            const r = await fetch(RESOLVE_URL, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json', 'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ code }),
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok || data.type !== 'batch') {
+                window.scanFeedback(r.ok ? `Kode ${code} adalah box, bukan batch.` : (data.message || `Kode ${code} tidak dikenali.`), 'danger');
+                return;
+            }
+            token = data.qr_code;
+        }
+        const res = await fetch(`${LOOKUP_URL}/${encodeURIComponent(token)}`, { headers: { 'Accept': 'application/json' } });
         if (!res.ok) { window.scanFeedback(`Kode ${code} tidak dikenali.`, 'danger'); return; }
         addInput(await res.json());
     } catch (e) {

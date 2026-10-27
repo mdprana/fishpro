@@ -7,6 +7,7 @@ use App\Models\PoSurplus;
 use App\Models\ProcessStage;
 use App\Models\ProductGroup;
 use App\Models\ProductionBatch;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
 {
+    public function __construct(private readonly AuditService $audit)
+    {
+    }
+
     public function index(): View
     {
         $pos = PurchaseOrder::with(['items.productType.group','items.packingBoxes'])
@@ -79,6 +84,8 @@ class PurchaseOrderController extends Controller
                     'notes'             => $resolved['notes'] ?? null,
                 ]);
             }
+
+            $this->audit->record('po.create', $po, null, $this->audit->snapshot($po->fresh()));
         });
 
         return redirect()->route('po.index')
@@ -186,6 +193,8 @@ public function show(PurchaseOrder $po): View
         }
 
         DB::transaction(function () use ($request, $po, $removed) {
+            $before = $this->audit->snapshot(PurchaseOrder::whereKey($po->id)->lockForUpdate()->firstOrFail());
+
             $po->update([
                 'buyer_name' => $request->buyer_name,
                 'order_date' => $request->order_date,
@@ -216,6 +225,8 @@ public function show(PurchaseOrder $po): View
             foreach ($removed as $item) {
                 $item->delete(); // soft delete, riwayat tetap tersimpan
             }
+
+            $this->audit->record('po.update', $po, $before, $this->audit->snapshot($po->fresh()));
         });
 
         return redirect()->route('po.show', $po)->with('success', "PO diperbarui.");
@@ -223,7 +234,13 @@ public function show(PurchaseOrder $po): View
 
     public function destroy(PurchaseOrder $po): RedirectResponse
     {
-        $po->delete();
+        DB::transaction(function () use ($po) {
+            $locked = PurchaseOrder::whereKey($po->id)->lockForUpdate()->firstOrFail();
+            $before = $this->audit->snapshot($locked);
+            $locked->delete();
+            $this->audit->record('po.delete', $locked, $before, $this->audit->snapshot($locked));
+        });
+
         return redirect()->route('po.index')->with('success', "PO {$po->po_number} dihapus.");
     }
 

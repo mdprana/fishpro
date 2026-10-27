@@ -35,6 +35,16 @@
             <span class="badge bg-primary ms-1">{{ $movements->total() }}</span>
         </button>
     </li>
+    @if($audits)
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="audit-tab" data-bs-toggle="tab"
+                data-bs-target="#tab-audit" type="button" role="tab">
+            <i class="bi bi-shield-check me-1"></i>
+            Audit
+            <span class="badge bg-secondary ms-1">{{ $audits->total() }}</span>
+        </button>
+    </li>
+    @endif
 </ul>
 
 <div class="tab-content" id="riwayatTabContent">
@@ -260,6 +270,89 @@
             <div class="mt-2">{{ $movements->appends(request()->except('page_ledger'))->links() }}</div>
         </div>
     </div>
+
+    @if($audits)
+    {{-- ══ AUDIT (hanya baca) ══ --}}
+    <div class="tab-pane fade" id="tab-audit" role="tabpanel">
+        <div class="form-card">
+            <div class="mb-3">
+                <h6 class="fw-bold mb-0"><i class="bi bi-shield-check me-1"></i>Audit Aksi</h6>
+                <small class="text-muted">Audit terstruktur tersedia sejak migrasi ini. Waktu dicatat server, ditampilkan dalam zona {{ config('app.timezone') }}.</small>
+            </div>
+
+            <form method="GET" class="row g-2 align-items-end mb-3">
+                <input type="hidden" name="tab" value="audit">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="audit_from">Dari</label>
+                    <input type="date" id="audit_from" name="audit_from" class="form-control form-control-sm" value="{{ request('audit_from') }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="audit_to">Sampai</label>
+                    <input type="date" id="audit_to" name="audit_to" class="form-control form-control-sm" value="{{ request('audit_to') }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="audit_actor">ID pengguna</label>
+                    <input type="number" min="1" id="audit_actor" name="audit_actor" class="form-control form-control-sm" value="{{ request('audit_actor') }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="audit_entity">Entitas</label>
+                    <select id="audit_entity" name="audit_entity" class="form-select form-select-sm">
+                        <option value="">Semua</option>
+                        @foreach(array_values(\App\Services\AuditService::ENTITIES) as $e)
+                        <option value="{{ $e }}" @selected(request('audit_entity') === $e)>{{ $e }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-6 col-md-1">
+                    <label class="form-label small mb-1" for="audit_id">ID</label>
+                    <input type="number" min="1" id="audit_id" name="audit_id" class="form-control form-control-sm" value="{{ request('audit_id') }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="audit_action">Aksi</label>
+                    <select id="audit_action" name="audit_action" class="form-select form-select-sm">
+                        <option value="">Semua</option>
+                        @foreach(array_keys(\App\Services\AuditService::ACTIONS) as $a)
+                        <option value="{{ $a }}" @selected(request('audit_action') === $a)>{{ $a }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-1">
+                    <button class="btn btn-sm btn-outline-primary w-100">Filter</button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-custom table-sm align-middle">
+                    <thead>
+                        <tr><th>Waktu</th><th>Oleh</th><th>Aksi</th><th>Entitas</th><th>Sebelum</th><th>Sesudah</th></tr>
+                    </thead>
+                    <tbody>
+                        @forelse($audits as $a)
+                        <tr>
+                            <td class="small text-nowrap">{{ $a->recorded_local->format('d/m/y H:i:s') }} <span class="text-muted">{{ config('app.timezone') }}</span></td>
+                            <td class="small">{{ $a->actor_id ? ($a->actor?->name ?? 'Pengguna').' #'.$a->actor_id : 'Sistem' }}</td>
+                            <td class="small"><code>{{ $a->action }}</code></td>
+                            <td class="small">{{ $a->entity_type }} #{{ $a->entity_id }}@if($a->movement_id) <span class="text-muted">(ledger #{{ $a->movement_id }})</span>@endif</td>
+                            @foreach([$a->before, $a->after] as $snap)
+                            <td class="small">
+                                @forelse(\App\Models\AuditEvent::present($snap) as $k => $v)
+                                <div><span class="text-muted">{{ $k }}:</span> {{ $v }}</div>
+                                @empty
+                                <span class="text-muted">-</span>
+                                @endforelse
+                            </td>
+                            @endforeach
+                        </tr>
+                        @empty
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada event audit.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-2">{{ $audits->appends(request()->except('page_audit'))->links() }}</div>
+        </div>
+    </div>
+    @endif
 
 </div>
 @endsection

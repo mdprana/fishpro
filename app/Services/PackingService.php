@@ -25,8 +25,10 @@ use Illuminate\Support\Facades\DB;
  */
 class PackingService
 {
-    public function __construct(private readonly CodeGenerator $codes)
-    {
+    public function __construct(
+        private readonly CodeGenerator $codes,
+        private readonly AuditService $audit,
+    ) {
     }
 
     /**
@@ -135,8 +137,9 @@ class PackingService
         }
 
         return DB::transaction(function () use ($box, $netWeightKg, $note) {
-            $box   = PackingBox::where('id', $box->id)->lockForUpdate()->firstOrFail();
-            $lama  = (float) $box->net_weight_kg;
+            $box    = PackingBox::where('id', $box->id)->lockForUpdate()->firstOrFail();
+            $before = $this->audit->snapshot($box);
+            $lama   = (float) $box->net_weight_kg;
             $delta = round($netWeightKg - $lama, 3);
 
             if (abs($delta) < ProductionBatch::EPSILON) {
@@ -183,6 +186,8 @@ class PackingService
 
             $this->refreshSourcePercentages($box->fresh());
 
+            $this->audit->record('box.adjust', $box, $before, $this->audit->snapshot($box->fresh()));
+
             return $box->fresh();
         });
     }
@@ -194,7 +199,8 @@ class PackingService
     public function voidBox(PackingBox $box, string $reason): void
     {
         DB::transaction(function () use ($box, $reason) {
-            $box = PackingBox::where('id', $box->id)->lockForUpdate()->firstOrFail();
+            $box    = PackingBox::where('id', $box->id)->lockForUpdate()->firstOrFail();
+            $before = $this->audit->snapshot($box);
 
             if ($box->status === 'voided') {
                 throw new \RuntimeException('Box ini sudah dibatalkan sebelumnya.');
@@ -212,6 +218,8 @@ class PackingService
             }
 
             $box->update(['status' => 'voided', 'notes' => $reason, 'updated_by' => auth()->id()]);
+
+            $this->audit->record('box.void', $box, $before, $this->audit->snapshot($box->fresh()));
         });
     }
 
@@ -320,6 +328,9 @@ class PackingService
         $box->update([
             'is_mixed_batch' => $box->sources()->distinct()->count('root_batch_id') > 1,
         ]);
+
+        // Satu event per box; pembungkus bulk/timbang tidak menulis event sendiri.
+        $this->audit->record('box.create', $box, null, $this->audit->snapshot($box->fresh()));
 
         return $box->fresh('sources');
     }
